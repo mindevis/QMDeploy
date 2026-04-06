@@ -17,7 +17,7 @@ images:
 # Заполняется CI (bump): меняется при новой сборке, чтобы Argo синкнул rollout без пина образа в spec.
 imageRevisions:
   qmserver: ""
-  qmadmin: ""
+  qmadmin: "850ad70"
   qmweb: ""
   qmdocs: ""
   qmnetwork: ""
@@ -25,7 +25,7 @@ imageRevisions:
 
 # kubectl create secret docker-registry ghcr-credentials -n qm --docker-server=ghcr.io --docker-username=... --docker-password=...
 imagePullSecrets:
-  - name: ghcr-credentials
+- name: ghcr-credentials
 
 ingress:
   hosts:
