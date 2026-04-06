@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/mindevis/QMDeploy/compare/v1.5.0...v1.6.0) (2026-04-06)
+
+
+### Features
+
+* **argocd:** enable qmsecret and smtp-relay in values-argocd ([6e31d1d](https://github.com/mindevis/QMDeploy/commit/6e31d1d129381d8aec657eddc80ce20209102c0e))
+
 # [1.5.0](https://github.com/mindevis/QMDeploy/compare/v1.4.2...v1.5.0) (2026-04-06)
 
 
