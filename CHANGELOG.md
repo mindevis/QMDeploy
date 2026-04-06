@@ -1,3 +1,10 @@
+## [1.4.7](https://github.com/mindevis/QMDeploy/compare/v1.4.6...v1.4.7) (2026-04-06)
+
+
+### Changed
+
+* **GitOps:** `values-argocd.yaml` — образ **`qmsecret`**; README: явный список сервисов для **`bump-qmdeploy-helm-image.py`** (включая **`qmsecret`**).
+
 ## [1.4.6](https://github.com/mindevis/QMDeploy/compare/v1.4.5...v1.4.6) (2026-04-06)
 
 

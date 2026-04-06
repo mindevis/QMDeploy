@@ -74,7 +74,7 @@ python3 scripts/install-optional-addons.py --uninstall-argocd --uninstall-s3
 
 ### GitOps: автоматический bump образов в QMDeploy (Argo CD)
 
-После каждого успешного push образа в GHCR CI репозиториев **QMDocs**, **QMAdmin**, **QMWeb**, **QMNetwork**, **QMServer** (cloud) вызывает переиспользуемый workflow **`QMDeploy/.github/workflows/bump-qmdeploy-image.yml`**: коммит в **`helm/qm-project/values-argocd.yaml`** (поле **`images.<service>`**), чтобы Argo CD увидел изменение и обновил кластер.
+После каждого успешного push образа в GHCR CI репозиториев **QMDocs**, **QMAdmin**, **QMWeb**, **QMNetwork**, **QMServer** (cloud), **QMSecret** вызывает переиспользуемый workflow **`QMDeploy/.github/workflows/bump-qmdeploy-image.yml`**: коммит в **`helm/qm-project/values-argocd.yaml`** (поле **`images.<service>`**), чтобы Argo CD увидел изменение и обновил кластер. Скрипт **`scripts/bump-qmdeploy-helm-image.py`** принимает **`--service`** из множества: **`qmdocs`**, **`qmadmin`**, **`qmweb`**, **`qmserver`**, **`qmnetwork`**, **`qmsecret`** — на GitHub **`main`** в **QMDeploy** должна быть версия скрипта с **`qmsecret`** (см. историю **`scripts/bump-qmdeploy-helm-image.py`**); иначе локальный/устаревший clone выдаст `invalid choice`.
 
 1. В **каждом** репозитории приложения (или в **организации**): секрет **`QMDEPLOY_BUMP_TOKEN`** — PAT с правом **`contents: write`** на репозиторий **QMDeploy** (classic repo / fine-grained: Contents write).
 2. Сначала **смёржите и опубликуйте** ветку **`main`** репозитория **QMDeploy**, в которой есть этот workflow — иначе job **`bump-qmdeploy`** упадёт с ошибкой «workflow not found».
