@@ -114,7 +114,7 @@ qmdocs:
       cpu: 500m
       memory: 512Mi
 
-# Опциональный Postfix в кластере (отправка с вашего домена). Включите и задайте пароль в Secret qm-app: SMTP_RELAY_USERS (формат user:password).
+# Опциональный Postfix в кластере (отправка с вашего домена). При smtpRelay.enabled чарт создаёт Secret smtp-relay-auth (SMTP_RELAY_USERS, формат user:password для boky/postfix).
 # QMSecret — зашифрованное хранилище секретов (только Cloud; не для Free/Pro). Требует ключи в Secret qm-app: QMSECRET_MASTER_KEY (base64, 32 байта), QMSECRET_SERVICE_TOKEN.
 qmsecret:
   enabled: false
@@ -190,6 +190,10 @@ smtpRelay:
   image: docker.io/boky/postfix:latest
   allowedSenderDomains: "qx-dev.ru"
   hostname: smtp.qx-dev.ru
+  # Логин SMTP AUTH (домен должен совпадать с allowedSenderDomains / вашим доменом).
+  relayUserEmail: noreply@qx-dev.ru
+  # Если не пусто — полная строка user:password (перекрывает автогенерацию). Иначе пароль = первые 32 hex-символа sha256(release|namespace|email).
+  smtpRelayUsersPlain: ""
   resources:
     requests:
       cpu: 50m

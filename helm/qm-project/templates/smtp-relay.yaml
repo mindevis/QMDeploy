@@ -55,7 +55,7 @@ spec:
             - name: SMTP_USERS
               valueFrom:
                 secretKeyRef:
-                  name: qm-app
+                  name: smtp-relay-auth
                   key: SMTP_RELAY_USERS
           ports:
             - name: submission

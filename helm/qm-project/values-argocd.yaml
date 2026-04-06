@@ -29,8 +29,8 @@ ingress:
     grafana: monit.qx-dev.ru
 
 # Включает Deployment/Service/Ingress для QMSecret и Postfix relay (остальные поля — из values.yaml).
-# Обязательно создайте Secret qm-app в namespace релиза: QMSECRET_MASTER_KEY, QMSECRET_SERVICE_TOKEN,
-# для smtp-relay — SMTP_RELAY_USERS (формат user:password для boky/postfix).
+# Обязательно создайте Secret qm-app: QMSECRET_MASTER_KEY, QMSECRET_SERVICE_TOKEN.
+# SMTP relay: чарт создаёт smtp-relay-auth (noreply@… + пароль); см. smtpRelay.relayUserEmail в values.yaml.
 qmsecret:
   enabled: true
 

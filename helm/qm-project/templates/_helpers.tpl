@@ -43,3 +43,21 @@ limits:
   cpu: 500m
   memory: 256Mi
 {{- end }}
+
+{{/*
+Одна строка SMTP AUTH для boky/postfix: email:password.
+Приоритет: существующий Secret smtp-relay-auth → smtpRelayUsersPlain в values → детерминированный пароль (sha256).
+*/}}
+{{- define "qm.smtpRelayUsersLine" -}}
+{{- $email := .Values.smtpRelay.relayUserEmail | default "noreply@qx-dev.ru" -}}
+{{- $ns := .Release.Namespace -}}
+{{- $sec := lookup "v1" "Secret" $ns "smtp-relay-auth" -}}
+{{- if and $sec (index $sec.data "SMTP_RELAY_USERS") -}}
+{{- index $sec.data "SMTP_RELAY_USERS" | b64dec -}}
+{{- else if .Values.smtpRelay.smtpRelayUsersPlain -}}
+{{- .Values.smtpRelay.smtpRelayUsersPlain -}}
+{{- else -}}
+{{- $hash := sha256sum (printf "%s|%s|%s" .Release.Name $ns $email) -}}
+{{- printf "%s:%s" $email (trunc 32 $hash) -}}
+{{- end -}}
+{{- end }}
