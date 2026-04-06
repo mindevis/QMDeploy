@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/mindevis/QMDeploy/compare/v1.7.0...v1.8.0) (2026-04-06)
+
+
+### Features
+
+* **helm:** auto Secret smtp-relay-auth for Postfix (noreply + generated password) ([0e8b574](https://github.com/mindevis/QMDeploy/commit/0e8b5742782a55983d40ca788d4c5d271e433a5f))
+
 # [1.7.0](https://github.com/mindevis/QMDeploy/compare/v1.6.0...v1.7.0) (2026-04-06)
 
 
