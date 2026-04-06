@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/mindevis/QMDeploy/compare/v1.4.1...v1.4.2) (2026-04-03)
+
+
+### Changed
+
+* **Helm `values.yaml`**: по умолчанию **`ingress.hosts.auth`** = **`auth.qx-dev.ru`** (QMNetwork); переопределение только для своего домена.
+
 ## [1.4.1](https://github.com/mindevis/QMDeploy/compare/v1.4.0...v1.4.1) (2026-04-06)
 
 

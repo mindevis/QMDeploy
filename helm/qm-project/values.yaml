@@ -37,7 +37,8 @@ ingress:
     admin: admin.example.com
     web: web.example.com
     docs: docs.example.com
-    auth: auth.example.com
+    # QMNetwork Ingress host (default qx-dev; override for custom domains)
+    auth: auth.qx-dev.ru
 
 mysql:
   image: percona/percona-server:8.0
