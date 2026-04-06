@@ -16,8 +16,8 @@ const pushAndGithub = [
   [
     '@semantic-release/github',
     {
-      successComment: false,
-      failComment: false,
+      successCommentCondition: false,
+      failCommentCondition: false,
       releasedLabels: false,
     },
   ],
