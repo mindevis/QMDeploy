@@ -61,6 +61,8 @@ qmserver:
     qmnetworkIssuer: "QMNetwork"
     port: "8080"
     ginMode: release
+    # OAuth2 PKCE: список redirect_uri через запятую. Пусто — собрать из ingress.hosts (web/login, admin/, docs/login/callback).
+    qmnetworkOAuthRedirectUris: ""
   resources:
     requests:
       cpu: 100m

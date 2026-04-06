@@ -11,3 +11,9 @@ data:
   QMNETWORK_ISSUER: {{ .Values.qmserver.config.qmnetworkIssuer | quote }}
   PORT: {{ .Values.qmserver.config.port | quote }}
   GIN_MODE: {{ .Values.qmserver.config.ginMode | quote }}
+  {{- $defUris := printf "https://%s/login,https://%s/,https://%s/login/callback" .Values.ingress.hosts.web .Values.ingress.hosts.admin .Values.ingress.hosts.docs }}
+  {{- $oauthUris := $defUris }}
+  {{- if .Values.qmserver.config.qmnetworkOAuthRedirectUris }}
+  {{- $oauthUris = .Values.qmserver.config.qmnetworkOAuthRedirectUris }}
+  {{- end }}
+  QMNETWORK_OAUTH_REDIRECT_URIS: {{ $oauthUris | quote }}

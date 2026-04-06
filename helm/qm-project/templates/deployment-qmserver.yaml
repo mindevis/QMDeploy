@@ -94,6 +94,11 @@ spec:
                 configMapKeyRef:
                   name: qm-qmserver-config
                   key: QMNETWORK_ISSUER
+            - name: QMNETWORK_OAUTH_REDIRECT_URIS
+              valueFrom:
+                configMapKeyRef:
+                  name: qm-qmserver-config
+                  key: QMNETWORK_OAUTH_REDIRECT_URIS
             - name: DB_DSN
               valueFrom:
                 secretKeyRef:
