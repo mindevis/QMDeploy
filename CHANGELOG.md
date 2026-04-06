@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/mindevis/QMDeploy/compare/v1.4.1...v1.4.2) (2026-04-06)
+
+
+### Bug Fixes
+
+* **ci:** rebase QMDeploy main before git push in bump workflow ([a4daca1](https://github.com/mindevis/QMDeploy/commit/a4daca13f6a9272bfb12b992610ab9f72fc74626))
+
 ## [1.4.2](https://github.com/mindevis/QMDeploy/compare/v1.4.1...v1.4.2) (2026-04-03)
 
 
