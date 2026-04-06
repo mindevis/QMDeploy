@@ -53,7 +53,7 @@ npm run release:dry       # сухой прогон
 npm run release           # changelog, bump VERSION + Chart.yaml, коммит, тег, push, GitHub Release
 ```
 
-**`release.config.cjs`**: по умолчанию **`repositoryUrl`** — **`https://github.com/mindevis/QMDeploy.git`** (переопределение: **`SEMANTIC_RELEASE_REPOSITORY_URL`**). После релиза выполняются **`git push origin main --follow-tags`** и создание **GitHub Release** (плагин **`@semantic-release/github`**). Без **`GH_TOKEN`** / **`GITHUB_TOKEN`** шаг GitHub упадёт; настройте push к **`origin`** (SSH/HTTPS). Подробнее — **`tools/semantic-release/README.md`** в монорепозитории QMProject.
+**`release.config.cjs`**: по умолчанию **`repositoryUrl`** — **`https://github.com/mindevis/QMDeploy.git`** (переопределение: **`SEMANTIC_RELEASE_REPOSITORY_URL`**). После релиза выполняются **`git push origin main --follow-tags`** и создание **GitHub Release** (плагин **`@semantic-release/github`**). Без **`GH_TOKEN`** / **`GITHUB_TOKEN`** шаг GitHub упадёт; настройте push к **`origin`** (SSH/HTTPS). Релиз **из каталога субмодуля внутри qm-project**: задайте **`QM_MONOREPO_ROOT`** (абсолютный путь к корню монорепозитория), чтобы после push QMDeploy выполнился второй push корня (обновить gitlink субмодулей). Подробнее — **`tools/semantic-release/README.md`** в монорепозитории QMProject.
 
 ## Версии
 
