@@ -7,7 +7,7 @@ images:
   qmserver: "ghcr.io/mindevis/qmserver:5042477"
   qmadmin: "ghcr.io/mindevis/qmadmin:b2816e6"
   qmweb: "ghcr.io/mindevis/qmweb:639cc13"
-  qmdocs: "ghcr.io/mindevis/qmdocs:f512c9b"
+  qmdocs: "ghcr.io/mindevis/qmdocs:1.0.8"
   qmnetwork: "ghcr.io/mindevis/qmnetwork:6090945"
   qmsecret: "ghcr.io/mindevis/qmsecret:03b279b"
 
