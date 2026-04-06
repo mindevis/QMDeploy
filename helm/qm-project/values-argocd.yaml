@@ -1,16 +1,18 @@
 # Значения по умолчанию для Argo CD Application (GitOps) — см. helm/argocd/applications/
 # Домены как в QMDocs (qx-dev). Переопределите в своём values или в UI Argo CD.
 #
-# Образы: пустая строка = из values.yaml (ghcr.io/<ghcrOwner>/<service>:<imageTag>).
-# CI приложений коммитит сюда полный ref (scripts/bump-qmdeploy-helm-image.py).
+# Образы: пустая строка в images.* → ghcr.io/<ghcrOwner>/<service>:<imageTag> (см. templates/_helpers.tpl).
+# Здесь явно latest, без пинов по SHA. Чтобы зафиксировать тег, задайте images.<сервис>: "ghcr.io/...:tag"
+# или отдельный overlay / bump-qmdeploy-helm-image.py.
+ghcrOwner: mindevis
+imageTag: latest
 images:
-  qmserver: "ghcr.io/mindevis/qmserver:5042477"
-  qmadmin: "ghcr.io/mindevis/qmadmin:b2816e6"
-  qmweb: "ghcr.io/mindevis/qmweb:639cc13"
-  qmdocs: "ghcr.io/mindevis/qmdocs:1.0.8"
-  # Тег ≥ коммита fix(db) split migrations (82ff720); иначе MySQL 1064 на 002_email_verification.
-  qmnetwork: "ghcr.io/mindevis/qmnetwork:50976b0"
-  qmsecret: "ghcr.io/mindevis/qmsecret:03b279b"
+  qmserver: ""
+  qmadmin: ""
+  qmweb: ""
+  qmdocs: ""
+  qmnetwork: ""
+  qmsecret: ""
 
 # kubectl create secret docker-registry ghcr-credentials -n qm --docker-server=ghcr.io --docker-username=... --docker-password=...
 imagePullSecrets:
