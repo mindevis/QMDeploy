@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/mindevis/QMDeploy/compare/v1.2.0...v1.3.0) (2026-04-06)
+
+
+### Features
+
+* **release:** push to origin and create GitHub Release after semantic-release ([c54b209](https://github.com/mindevis/QMDeploy/commit/c54b209b1cbfeb3966ad9a03d5284babd86a1f4c))
+
 # Changelog
 
 All notable changes to **QMDeploy** (Helm chart and K3s install scripts for QM Project) are documented here.
