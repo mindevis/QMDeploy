@@ -19,7 +19,7 @@ imageRevisions:
   qmserver: ""
   qmadmin: "850ad70"
   qmweb: ""
-  qmdocs: ""
+  qmdocs: "7c04059"
   qmnetwork: "4320bad"
   qmsecret: ""
 
