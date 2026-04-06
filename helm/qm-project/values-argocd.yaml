@@ -11,6 +11,10 @@ images:
   qmnetwork: "ghcr.io/mindevis/qmnetwork:6090945"
   qmsecret: "ghcr.io/mindevis/qmsecret:03b279b"
 
+# kubectl create secret docker-registry ghcr-credentials -n qm --docker-server=ghcr.io --docker-username=... --docker-password=...
+imagePullSecrets:
+  - name: ghcr-credentials
+
 ingress:
   hosts:
     api: api.qx-dev.ru
