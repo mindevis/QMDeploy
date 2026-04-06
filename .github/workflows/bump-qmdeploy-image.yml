@@ -13,7 +13,7 @@ on:
       image_ref:
         required: true
         type: string
-        description: "Полная ссылка ghcr.io/owner/name:tag"
+        description: "Референс сборки (в коммите; в values пишется imageTag latest без пина SHA)"
       qmdeploy_repository:
         required: false
         type: string
@@ -58,7 +58,7 @@ jobs:
             echo "Нет изменений (тот же image ref) — пропуск push."
             exit 0
           fi
-          git commit -m "chore(gitops): bump ${SERVICE} image to ${REF}"
+          git commit -m "chore(gitops): imageTag latest (${SERVICE} build ${REF})"
           # Remote may be ahead (another image bump or manual edit); rebase then push.
           git pull --rebase origin main
           git push

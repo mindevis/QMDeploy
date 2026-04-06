@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """
-Обновляет images.<service> в values-argocd.yaml (Argo CD / GitOps).
-Требование: pip install -r scripts/requirements-gitops.txt (ruamel.yaml).
+Обновляет helm/qm-project/values-argocd.yaml для GitOps без пина по SHA:
+  imageTag: latest
+  images.<service>: ""  → образ ghcr.io/<ghcrOwner>/<service>:latest (см. templates/_helpers.tpl)
+
+Аргументы --service и --image-ref оставлены для совместимости с CI (сообщение коммита / трассировка сборки);
+в YAML тег сборки не записывается — в GHCR публикуется и latest, и SHA.
 """
 from __future__ import annotations
 
@@ -18,12 +22,12 @@ def main() -> None:
         "--service",
         required=True,
         choices=sorted(VALID_SERVICES),
-        help="Ключ в Values.images (имя сервиса в чарте)",
+        help="Какой сервис собрали (для логов; в YAML выставляются все images.* одинаково)",
     )
     p.add_argument(
         "--image-ref",
-        required=True,
-        help="Полная ссылка на образ, напр. ghcr.io/org/qmdocs:1.2.3",
+        default="",
+        help="Референс сборки (не пишется в values; только для сообщения коммита в workflow)",
     )
     p.add_argument(
         "--file",
@@ -48,9 +52,15 @@ def main() -> None:
     yaml.preserve_quotes = True
     text = path.read_text(encoding="utf-8")
     data = yaml.load(text) or {}
+
+    data["imageTag"] = "latest"
+    if not data.get("ghcrOwner"):
+        data["ghcrOwner"] = "mindevis"
     if "images" not in data or data["images"] is None:
         data["images"] = {}
-    data["images"][args.service] = args.image_ref
+    for svc in sorted(VALID_SERVICES):
+        data["images"][svc] = ""
+
     with path.open("w", encoding="utf-8") as fp:
         yaml.dump(data, fp)
 
