@@ -7,7 +7,7 @@ images:
   qmserver: "ghcr.io/mindevis/qmserver:5042477"
   qmadmin: "ghcr.io/mindevis/qmadmin:b2816e6"
   qmweb: "ghcr.io/mindevis/qmweb:639cc13"
-  qmdocs: "ghcr.io/mindevis/qmdocs:0f8f135"
+  qmdocs: "ghcr.io/mindevis/qmdocs:f512c9b"
   qmnetwork: "ghcr.io/mindevis/qmnetwork:3c3582a"
 
 ingress:
