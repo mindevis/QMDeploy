@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: qm-project
+data:
+  mysql.cnf: |
+    [mysql]
+    default-character-set = utf8mb4
+
+    [mysqld]
+    character-set-server = utf8mb4
+    collation-server = utf8mb4_unicode_ci
+    init_connect = 'SET NAMES utf8mb4'
+    sql_mode = STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+    innodb_buffer_pool_size = 256M
+    innodb_log_file_size = 64M
+    max_connections = 200
+    general_log = 0
+    slow_query_log = 1
+    long_query_time = 2
+  99-qmserver-schema.sql: |
+    USE qmserver;
+    CREATE TABLE IF NOT EXISTS servers (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      host VARCHAR(255) NOT NULL,
+      port INT NOT NULL DEFAULT 25565,
+      version VARCHAR(50) NOT NULL,
+      mod_loader ENUM('forge', 'neoforge', 'quilt', 'fabric') NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      deleted_at TIMESTAMP NULL,
+      INDEX idx_servers_deleted_at (deleted_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  100-qmnetwork.sql: |
+    CREATE DATABASE IF NOT EXISTS qmnetwork CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    GRANT ALL PRIVILEGES ON qmnetwork.* TO 'qmuser'@'%';
+    FLUSH PRIVILEGES;

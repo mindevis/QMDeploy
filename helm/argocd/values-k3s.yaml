@@ -1,0 +1,11 @@
+# Argo CD — значения по умолчанию для K3s + Traefik (как ingress у qm-project: className traefik).
+# Домен задаётся в install-optional-addons.py: --argocd-host (по умолчанию k3s.qx-dev.ru) → global.domain.
+configs:
+  params:
+    # TLS на Ingress (Traefik); бэкенд Argo CD — HTTP внутри кластера
+    "server.insecure": "true"
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: traefik

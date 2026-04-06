@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: qmweb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: qmweb
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: qm-project
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  selector:
+    app: qmweb
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qmweb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/name: qmweb
+    app.kubernetes.io/part-of: qm-project
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qmweb
+  template:
+    metadata:
+      labels:
+        app: qmweb
+        {{- include "qm.labels" . | nindent 8 }}
+        app.kubernetes.io/part-of: qm-project
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: nginx
+          {{- $img := include "qm.image" (list . "qmweb") }}
+          image: {{ $img | quote }}
+          imagePullPolicy: {{ include "qm.imagePullPolicy" $img }}
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: uploads
+              mountPath: /usr/share/nginx/html/uploads
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            {{- toYaml .Values.qmweb.resources | nindent 12 }}
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: qmweb-uploads

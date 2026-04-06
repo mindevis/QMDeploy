@@ -1,0 +1,75 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qm-public
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: qm-project
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className | quote }}
+  rules:
+    - host: {{ .Values.ingress.hosts.api | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qmserver
+                port:
+                  number: 8080
+    - host: {{ .Values.ingress.hosts.admin | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qmadmin
+                port:
+                  number: 80
+    - host: {{ .Values.ingress.hosts.web | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qmweb
+                port:
+                  number: 80
+    - host: {{ .Values.ingress.hosts.docs | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qmdocs
+                port:
+                  number: 80
+    - host: {{ .Values.ingress.hosts.auth | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qmnetwork
+                port:
+                  number: 8080
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.hosts.api | quote }}
+        - {{ .Values.ingress.hosts.admin | quote }}
+        - {{ .Values.ingress.hosts.web | quote }}
+        - {{ .Values.ingress.hosts.docs | quote }}
+        - {{ .Values.ingress.hosts.auth | quote }}
+      secretName: {{ .Values.ingress.tls.secretName | quote }}
+  {{- end }}

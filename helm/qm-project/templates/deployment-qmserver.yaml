@@ -1,0 +1,164 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: qmserver
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: qmserver
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: qm-project
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: qmserver
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qmserver
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/name: qmserver
+    app.kubernetes.io/part-of: qm-project
+spec:
+  replicas: 1
+  progressDeadlineSeconds: {{ .Values.qmserver.progressDeadlineSeconds }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # hostNetwork: второй под на той же ноде не получит те же host-порты — scheduler даёт FailedScheduling.
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: qmserver
+  template:
+    metadata:
+      labels:
+        app: qmserver
+        {{- include "qm.labels" . | nindent 8 }}
+        app.kubernetes.io/part-of: qm-project
+    spec:
+      hostNetwork: {{ .Values.qmserver.hostNetwork }}
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: wait-mysql
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              for i in $(seq 1 90); do
+                if nc -z mysql 3306; then exit 0; fi
+                sleep 2
+              done
+              exit 1
+      containers:
+        - name: qmserver
+          {{- $img := include "qm.image" (list . "qmserver") }}
+          image: {{ $img | quote }}
+          imagePullPolicy: {{ include "qm.imagePullPolicy" $img }}
+          command: ["./qmserver", "--server"]
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: QMSERVER_DATA_PATH
+              value: /app
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: qm-qmserver-config
+                  key: PORT
+            - name: GIN_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: qm-qmserver-config
+                  key: GIN_MODE
+            - name: APP_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: qm-qmserver-config
+                  key: APP_NAME
+            - name: QMNETWORK_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: qm-qmserver-config
+                  key: QMNETWORK_ISSUER
+            - name: DB_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: qm-app
+                  key: DB_DSN
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: qm-app
+                  key: JWT_SECRET
+            - name: QMBILLING_ADMIN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: qm-app
+                  key: QMBILLING_ADMIN_SECRET
+            - name: QMSERVER_CLOUD_K8S
+              value: "1"
+            - name: QMSERVER_CLOUD_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: qm-app
+                  key: QMSERVER_CLOUD_LICENSE_KEY
+                  optional: true
+            - name: QMSERVER_CLOUD_LICENSE_IPS
+              valueFrom:
+                secretKeyRef:
+                  name: qm-app
+                  key: QMSERVER_CLOUD_LICENSE_IPS
+                  optional: true
+            - name: QMSERVER_CLOUD_LICENSE_MACHINE_IDS
+              valueFrom:
+                secretKeyRef:
+                  name: qm-app
+                  key: QMSERVER_CLOUD_LICENSE_MACHINE_IDS
+                  optional: true
+            - name: QMSERVER_CLOUD_LICENSE_NODE_NAMES
+              valueFrom:
+                secretKeyRef:
+                  name: qm-app
+                  key: QMSERVER_CLOUD_LICENSE_NODE_NAMES
+                  optional: true
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: data
+              mountPath: /app/.servers
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.qmserver.resources | nindent 12 }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: qmserver-data

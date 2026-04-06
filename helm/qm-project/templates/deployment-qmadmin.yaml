@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: qmadmin
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: qmadmin
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: qm-project
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  selector:
+    app: qmadmin
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qmadmin
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/name: qmadmin
+    app.kubernetes.io/part-of: qm-project
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qmadmin
+  template:
+    metadata:
+      labels:
+        app: qmadmin
+        {{- include "qm.labels" . | nindent 8 }}
+        app.kubernetes.io/part-of: qm-project
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: nginx
+          {{- $img := include "qm.image" (list . "qmadmin") }}
+          image: {{ $img | quote }}
+          imagePullPolicy: {{ include "qm.imagePullPolicy" $img }}
+          ports:
+            - name: http
+              containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            {{- toYaml .Values.qmadmin.resources | nindent 12 }}

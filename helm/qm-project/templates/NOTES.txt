@@ -1,0 +1,12 @@
+1. Секреты не создаются чартом. Должны существовать в namespace {{ .Release.Namespace }}:
+   - qm-mysql (MYSQL_*)
+   - qm-app (DB_DSN, QMNETWORK_MYSQL_DSN, JWT_SECRET, …)
+
+   См. deploy/k3s/README.md раздел «Секреты» или install_k3s_qm.py.
+
+2. Проверка:
+   kubectl -n {{ .Release.Namespace }} get pods,ingress
+   kubectl -n {{ .Release.Namespace }} rollout status deployment/qmserver
+
+3. Обновление образов:
+   helm upgrade {{ .Release.Name }} . -n {{ .Release.Namespace }} --reuse-values --set imageTag=NEW

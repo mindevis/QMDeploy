@@ -1,0 +1,109 @@
+# Namespace for the release (helm install -n qm must match)
+namespace: qm
+
+# Create Namespace resource (safe if namespace already exists)
+createNamespace: true
+
+# PVC qmserver-data / qmweb-uploads. Set false if those PVCs already exist from a prior install.
+persistence:
+  create: true
+
+# ghcr.io/<ghcrOwner>/<service>:<imageTag> when images.<service> is empty
+ghcrOwner: mindevis
+imageTag: latest
+
+# Override full image refs (non-empty = use as-is)
+images:
+  qmserver: ""
+  qmadmin: ""
+  qmweb: ""
+  qmdocs: ""
+  qmnetwork: ""
+
+# Uncomment after creating the secret (same as flat manifests):
+# imagePullSecrets:
+#   - name: ghcr-credentials
+imagePullSecrets: []
+
+# Ingress (Traefik on K3s)
+ingress:
+  className: traefik
+  annotations: {}
+  tls:
+    enabled: false
+    secretName: qm-tls-wildcard
+  hosts:
+    api: api.example.com
+    admin: admin.example.com
+    web: web.example.com
+    docs: docs.example.com
+    auth: auth.example.com
+
+mysql:
+  image: percona/percona-server:8.0
+  storage: 20Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+
+qmserver:
+  pvc:
+    storage: 10Gi
+  progressDeadlineSeconds: 900
+  hostNetwork: true
+  config:
+    appName: "QMServer Cloud"
+    qmnetworkIssuer: "QMNetwork"
+    port: "8080"
+    ginMode: release
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: "2"
+      memory: 1Gi
+
+qmadmin:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+qmweb:
+  pvc:
+    storage: 5Gi
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+qmdocs:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+qmnetwork:
+  # DSN MySQL на БД qmnetwork (тот же хост/пользователь, что QMServer). Пусто — из Secret qm-app, ключ QMNETWORK_MYSQL_DSN.
+  mysqlDsn: ""
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
