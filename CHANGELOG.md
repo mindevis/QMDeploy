@@ -25,6 +25,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+
+- **GitOps**: job **`bump-qmdeploy`** в workflow сборки образов также запускается при **`workflow_dispatch`** (раньше только при **`push`** в `main` / тег `v*`), чтобы ручной **Run workflow** обновлял **`values-argocd.yaml`** в QMDeploy.
+
 ### Added
 
 - **GitOps CI**: переиспользуемый workflow **`.github/workflows/bump-qmdeploy-image.yml`**, скрипт **`scripts/bump-qmdeploy-helm-image.py`** и блок **`images`** в **`helm/qm-project/values-argocd.yaml`** — CI приложений коммитит новый ref образа в QMDeploy для Argo CD (секрет **`QMDEPLOY_BUMP_TOKEN`** в репозиториях приложений).

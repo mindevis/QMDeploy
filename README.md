@@ -60,6 +60,8 @@ python3 scripts/install-optional-addons.py --uninstall-argocd --uninstall-s3
 2. Сначала **смёржите и опубликуйте** ветку **`main`** репозитория **QMDeploy**, в которой есть этот workflow — иначе job **`bump-qmdeploy`** упадёт с ошибкой «workflow not found».
 3. При необходимости закрепите версию workflow: вместо **`@main`** в workflow приложения укажите тег **`@vX.Y.Z`** (после релиза QMDeploy).
 
+**Если коммита в QMDeploy нет:** в Actions откройте последний run workflow сборки образа — job **`bump-qmdeploy`** не должен быть **Skipped**. Раньше он не запускался при ручном **Run workflow** (`workflow_dispatch`); сейчас условие это учитывает. Проверьте: **push в `main`** или тег **`v*`**, секрет **`QMDEPLOY_BUMP_TOKEN`** в этом репозитории, на **`main`** в QMDeploy уже лежит **`bump-qmdeploy-image.yml`**. Если в логе bump: «Нет изменений» — в **`values-argocd.yaml`** уже записан тот же **`image ref`** (повторный push того же коммита). У **GitHub Enterprise** PAT может требовать **Authorize SSO** для организации.
+
 Образы **QMClient** / **QMLauncher** в чарт **`qm-project`** не входят — отдельного bump нет.
 
 ## Semantic-release
