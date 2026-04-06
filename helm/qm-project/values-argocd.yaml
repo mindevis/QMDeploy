@@ -1,5 +1,15 @@
 # Значения по умолчанию для Argo CD Application (GitOps) — см. helm/argocd/applications/
 # Домены как в QMDocs (qx-dev). Переопределите в своём values или в UI Argo CD.
+#
+# Образы: пустая строка = из values.yaml (ghcr.io/<ghcrOwner>/<service>:<imageTag>).
+# CI приложений коммитит сюда полный ref (scripts/bump-qmdeploy-helm-image.py).
+images:
+  qmserver: ""
+  qmadmin: ""
+  qmweb: ""
+  qmdocs: ""
+  qmnetwork: ""
+
 ingress:
   hosts:
     api: api.qx-dev.ru

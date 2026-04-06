@@ -19,6 +19,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- **GitOps CI**: переиспользуемый workflow **`.github/workflows/bump-qmdeploy-image.yml`**, скрипт **`scripts/bump-qmdeploy-helm-image.py`** и блок **`images`** в **`helm/qm-project/values-argocd.yaml`** — CI приложений коммитит новый ref образа в QMDeploy для Argo CD (секрет **`QMDEPLOY_BUMP_TOKEN`** в репозиториях приложений).
 - **`scripts/install-optional-addons.py`**: флаги **`--uninstall-argocd`** и **`--uninstall-s3`** — полное удаление Argo CD (Application → Helm → namespace `argocd`) и MinIO (Helm → namespace из **`--minio-namespace`**).
 
 ## [1.2.0] - 2026-04-06
