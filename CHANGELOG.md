@@ -1,3 +1,10 @@
+## [1.4.4](https://github.com/mindevis/QMDeploy/compare/v1.4.3...v1.4.4) (2026-04-03)
+
+
+### Features
+
+* **helm:** опциональный **QMSecret** (`qmsecret.enabled`), мониторинг **Grafana/Prometheus** (`monitoring.enabled`, Ingress **`monit.qx-dev.ru`**), согласование **`VERSION`** с **`Chart.yaml`**.
+
 ## [1.4.2](https://github.com/mindevis/QMDeploy/compare/v1.4.1...v1.4.2) (2026-04-06)
 
 

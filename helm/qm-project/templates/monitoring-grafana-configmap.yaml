@@ -1,0 +1,21 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qm-monitoring-grafana-datasources
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/part-of: qm-project
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://qm-prometheus:9090
+        isDefault: true
+        editable: false
+{{- end }}

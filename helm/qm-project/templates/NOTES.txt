@@ -1,6 +1,9 @@
 1. Секреты не создаются чартом. Должны существовать в namespace {{ .Release.Namespace }}:
    - qm-mysql (MYSQL_*)
    - qm-app (DB_DSN, QMNETWORK_MYSQL_DSN, JWT_SECRET, …)
+{{- if .Values.monitoring.enabled }}
+   При monitoring.enabled: в qm-app добавьте GRAFANA_ADMIN_PASSWORD (или задайте monitoring.grafana.adminPasswordPlain в values только для отладки).
+{{- end }}
 
    См. deploy/k3s/README.md раздел «Секреты» или install_k3s_qm.py.
 

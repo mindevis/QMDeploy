@@ -30,6 +30,26 @@ sudo python3 /opt/qm/scripts/install-k3s-helm.py -f my-values.yaml
 
 Переменные: **`QM_HELM_BASE_URL`**, **`QM_DEPLOY_BASE_URL`**, **`QM_HELM_CACHE`**, **`QM_DEPLOY_ROOT`**.
 
+## Опционально: Grafana + Prometheus (мониторинг в кластере)
+
+В **`helm/qm-project/values.yaml`** задайте **`monitoring.enabled: true`**. В Secret **`qm-app`** добавьте **`GRAFANA_ADMIN_PASSWORD`** (или только для отладки **`monitoring.grafana.adminPasswordPlain`** в values).
+
+Поднимаются **Prometheus**, **Grafana** (Ingress на **`ingress.hosts.grafana`**, по умолчанию **`monit.qx-dev.ru`**), **mysqld-exporter** (учётные данные из **`qm-mysql`**) и **blackbox-exporter** (проверка HTTP **`/health`** у QMServer — метрика доступности, не внутренние метрики процесса).
+
+Если **`ingress.tls.enabled: false`**, выставьте **`monitoring.grafana.rootUrlScheme: http`**, чтобы **`GF_SERVER_ROOT_URL`** совпадал с реальным URL.
+
+## Опционально: мониторинг в Docker (без Kubernetes)
+
+В корне QMDeploy:
+
+```bash
+cp .env.monitoring.example .env.monitoring
+# Задайте MONITORING_MYSQL_DSN; при необходимости поправьте monitoring/docker/prometheus.yml (адрес QMServer для blackbox)
+docker compose -f docker-compose.monitoring.yml --env-file .env.monitoring up -d
+```
+
+**Grafana:** `http://localhost:3030` · **Prometheus:** `http://localhost:9090`.
+
 ## Опционально: Argo CD и MinIO (S3)
 
 ```bash

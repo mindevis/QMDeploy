@@ -17,3 +17,5 @@ ingress:
     web: web.qx-dev.ru
     docs: qm.qx-dev.ru
     auth: auth.qx-dev.ru
+    key: key.qx-dev.ru
+    grafana: monit.qx-dev.ru

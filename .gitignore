@@ -3,3 +3,6 @@ node_modules/
 *.pyc
 __pycache__/
 .venv/
+
+# Локальные секреты для docker-compose.monitoring.yml
+.env.monitoring

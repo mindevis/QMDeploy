@@ -1,0 +1,65 @@
+{{- if .Values.smtpRelay.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: smtp-relay
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: smtp-relay
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: qm-project
+spec:
+  type: ClusterIP
+  ports:
+    - name: submission
+      port: 587
+      targetPort: submission
+  selector:
+    app: smtp-relay
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smtp-relay
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: smtp-relay
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/name: smtp-relay
+    app.kubernetes.io/part-of: qm-project
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smtp-relay
+  template:
+    metadata:
+      labels:
+        app: smtp-relay
+        {{- include "qm.labels" . | nindent 8 }}
+        app.kubernetes.io/part-of: qm-project
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: postfix
+          image: {{ .Values.smtpRelay.image | quote }}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ALLOWED_SENDER_DOMAINS
+              value: {{ .Values.smtpRelay.allowedSenderDomains | quote }}
+            - name: HOSTNAME
+              value: {{ .Values.smtpRelay.hostname | quote }}
+            - name: SMTP_USERS
+              valueFrom:
+                secretKeyRef:
+                  name: qm-app
+                  key: SMTP_RELAY_USERS
+          ports:
+            - name: submission
+              containerPort: 587
+          resources:
+            {{- toYaml .Values.smtpRelay.resources | nindent 12 }}
+{{- end }}

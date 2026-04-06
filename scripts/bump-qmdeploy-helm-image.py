@@ -9,7 +9,7 @@ import argparse
 import sys
 from pathlib import Path
 
-VALID_SERVICES = frozenset({"qmdocs", "qmadmin", "qmweb", "qmserver", "qmnetwork"})
+VALID_SERVICES = frozenset({"qmdocs", "qmadmin", "qmweb", "qmserver", "qmnetwork", "qmsecret"})
 
 
 def main() -> None:

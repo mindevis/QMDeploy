@@ -1,0 +1,75 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: qm-blackbox-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: qm-blackbox-exporter
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: qm-project
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 9115
+      targetPort: http
+  selector:
+    app: qm-blackbox-exporter
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qm-blackbox-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/name: blackbox-exporter
+    app.kubernetes.io/part-of: qm-project
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qm-blackbox-exporter
+  template:
+    metadata:
+      labels:
+        app: qm-blackbox-exporter
+        {{- include "qm.labels" . | nindent 8 }}
+        app.kubernetes.io/part-of: qm-project
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: blackbox
+          image: {{ .Values.monitoring.blackboxExporter.image | quote }}
+          imagePullPolicy: IfNotPresent
+          args:
+            - --config.file=/config/blackbox.yml
+          ports:
+            - name: http
+              containerPort: 9115
+          volumeMounts:
+            - name: cfg
+              mountPath: /config
+          readinessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            {{- toYaml .Values.monitoring.blackboxExporter.resources | nindent 12 }}
+      volumes:
+        - name: cfg
+          configMap:
+            name: qm-monitoring-blackbox
+{{- end }}

@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qm-qmnetwork-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: qm-project
+data:
+  QMNETWORK_ISSUER: {{ .Values.qmserver.config.qmnetworkIssuer | quote }}
+  {{- $defUris := printf "https://%s/login,https://%s/,https://%s/login/callback" .Values.ingress.hosts.web .Values.ingress.hosts.admin .Values.ingress.hosts.docs }}
+  {{- $oauthUris := $defUris }}
+  {{- if .Values.qmserver.config.qmnetworkOAuthRedirectUris }}
+  {{- $oauthUris = .Values.qmserver.config.qmnetworkOAuthRedirectUris }}
+  {{- end }}
+  QMNETWORK_OAUTH_REDIRECT_URIS: {{ $oauthUris | quote }}
+  {{- $verifyScheme := "http" }}
+  {{- if .Values.ingress.tls.enabled }}
+  {{- $verifyScheme = "https" }}
+  {{- end }}
+  {{- $defPub := printf "%s://%s" $verifyScheme .Values.ingress.hosts.auth }}
+  {{- $pub := $defPub }}
+  {{- if .Values.qmnetwork.publicOrigin }}
+  {{- $pub = .Values.qmnetwork.publicOrigin }}
+  {{- end }}
+  QMNETWORK_PUBLIC_ORIGIN: {{ $pub | quote }}
+  {{- $defVerifyURL := $defPub }}
+  QMNETWORK_VERIFY_EMAIL_PUBLIC_URL: {{ .Values.qmserver.config.qmnetworkVerifyEmailPublicUrl | default $defVerifyURL | quote }}
+  QMNETWORK_SMTP_HOST: {{ .Values.qmserver.config.qmnetworkSmtpHost | default "" | quote }}
+  QMNETWORK_SMTP_PORT: {{ .Values.qmserver.config.qmnetworkSmtpPort | default "587" | quote }}
+  QMNETWORK_SMTP_USER: {{ .Values.qmserver.config.qmnetworkSmtpUser | default "" | quote }}
+  QMNETWORK_SMTP_FROM: {{ .Values.qmserver.config.qmnetworkSmtpFrom | default "" | quote }}
+  QMNETWORK_EMAIL_VERIFY_TTL: {{ .Values.qmserver.config.qmnetworkEmailVerifyTTL | default "48h" | quote }}
+  {{- if .Values.qmnetwork.adminEmails }}
+  QMNETWORK_ADMIN_EMAILS: {{ .Values.qmnetwork.adminEmails | quote }}
+  {{- end }}

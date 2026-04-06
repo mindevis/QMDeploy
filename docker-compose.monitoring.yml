@@ -1,0 +1,69 @@
+# Опциональный стек мониторинга рядом с QM (Docker). Не зависит от Helm.
+#
+# Подготовка:
+#   cp .env.monitoring.example .env.monitoring
+#   # Задайте MONITORING_MYSQL_DSN и при необходимости GRAFANA_ADMIN_PASSWORD, поправьте monitoring/docker/prometheus.yml (URL QMServer).
+#
+# Запуск:
+#   docker compose -f docker-compose.monitoring.yml --env-file .env.monitoring up -d
+#
+# UI: Grafana http://localhost:3030 , Prometheus http://localhost:9090
+# MySQL exporter: метрики на :9104 (для отладки).
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ./monitoring/docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - qm-monitoring
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3030}
+      GF_INSTALL_PLUGINS: ${GRAFANA_INSTALL_PLUGINS:-}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3030:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - qm-monitoring
+
+  mysql-exporter:
+    image: prom/mysqld-exporter:v0.16.0
+    environment:
+      DATA_SOURCE_NAME: ${MONITORING_MYSQL_DSN:?Set MONITORING_MYSQL_DSN in .env.monitoring}
+    ports:
+      - "9104:9104"
+    networks:
+      - qm-monitoring
+
+  blackbox:
+    image: prom/blackbox-exporter:v0.25.0
+    command:
+      - --config.file=/config/blackbox.yml
+    volumes:
+      - ./monitoring/docker/blackbox.yml:/config/blackbox.yml:ro
+    networks:
+      - qm-monitoring
+
+volumes:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  qm-monitoring:
+    driver: bridge

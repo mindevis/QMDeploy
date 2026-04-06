@@ -1,0 +1,25 @@
+# Docker Compose: сервисы называются mysql-exporter, blackbox, prometheus (см. docker-compose.monitoring.yml).
+# Для проверки QMServer замените host.docker.internal на адрес хоста с QMServer (Linux: часто 172.17.0.1 или IP LAN).
+global:
+  scrape_interval: 30s
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+  - job_name: mysqld
+    static_configs:
+      - targets: ["mysql-exporter:9104"]
+  - job_name: blackbox-qmserver-health
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://host.docker.internal:8080/health
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - target_label: __address__
+        replacement: blackbox:9115
+      - source_labels: [__param_target]
+        target_label: instance

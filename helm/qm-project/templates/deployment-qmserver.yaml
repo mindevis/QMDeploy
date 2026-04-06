@@ -94,16 +94,39 @@ spec:
                 configMapKeyRef:
                   name: qm-qmserver-config
                   key: QMNETWORK_ISSUER
-            - name: QMNETWORK_OAUTH_REDIRECT_URIS
+            - name: QMNETWORK_JWKS_URL
               valueFrom:
                 configMapKeyRef:
                   name: qm-qmserver-config
-                  key: QMNETWORK_OAUTH_REDIRECT_URIS
-            - name: QMSERVER_SUPER_ADMIN_EMAILS
+                  key: QMNETWORK_JWKS_URL
+            - name: QMNETWORK_INTERNAL_URL
               valueFrom:
                 configMapKeyRef:
                   name: qm-qmserver-config
-                  key: QMSERVER_SUPER_ADMIN_EMAILS
+                  key: QMNETWORK_INTERNAL_URL
+            - name: QMNETWORK_INTERNAL_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: qm-app
+                  key: QMNETWORK_INTERNAL_SECRET
+                  optional: true
+            {{- if .Values.qmsecret.enabled }}
+            - name: QMSECRET_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: qm-qmserver-config
+                  key: QMSECRET_BASE_URL
+            - name: QMSECRET_PATH_QMNETWORK_INTERNAL
+              valueFrom:
+                configMapKeyRef:
+                  name: qm-qmserver-config
+                  key: QMSECRET_PATH_QMNETWORK_INTERNAL
+            - name: QMSECRET_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: qm-app
+                  key: QMSECRET_SERVICE_TOKEN
+            {{- end }}
             - name: DB_DSN
               valueFrom:
                 secretKeyRef:

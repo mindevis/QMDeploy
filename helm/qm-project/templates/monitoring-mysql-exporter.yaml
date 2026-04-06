@@ -1,0 +1,83 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: qm-mysql-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: qm-mysql-exporter
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: qm-project
+spec:
+  type: ClusterIP
+  ports:
+    - name: metrics
+      port: 9104
+      targetPort: metrics
+  selector:
+    app: qm-mysql-exporter
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qm-mysql-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/name: mysql-exporter
+    app.kubernetes.io/part-of: qm-project
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qm-mysql-exporter
+  template:
+    metadata:
+      labels:
+        app: qm-mysql-exporter
+        {{- include "qm.labels" . | nindent 8 }}
+        app.kubernetes.io/part-of: qm-project
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: mysqld-exporter
+          image: {{ .Values.monitoring.mysqlExporter.image | quote }}
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              export DATA_SOURCE_NAME="${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(mysql:3306)/"
+              exec /bin/mysqld_exporter
+          env:
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: qm-mysql
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: qm-mysql
+                  key: MYSQL_PASSWORD
+          ports:
+            - name: metrics
+              containerPort: 9104
+          readinessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            {{- toYaml .Values.monitoring.mysqlExporter.resources | nindent 12 }}
+{{- end }}

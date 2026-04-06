@@ -19,6 +19,7 @@ images:
   qmweb: ""
   qmdocs: ""
   qmnetwork: ""
+  qmsecret: ""
 
 # Uncomment after creating the secret (same as flat manifests):
 # imagePullSecrets:
@@ -39,6 +40,10 @@ ingress:
     docs: docs.example.com
     # QMNetwork Ingress host (default qx-dev; override for custom domains)
     auth: auth.qx-dev.ru
+    # QMSecret (Cloud only; включите qmsecret.enabled). Для продакшена ограничьте доступ (firewall / BasicAuth / IP allowlist).
+    key: key.qx-dev.ru
+    # Grafana (включите monitoring.enabled). Пароль админа: Secret qm-app → GRAFANA_ADMIN_PASSWORD или monitoring.grafana.adminPasswordPlain в values.
+    grafana: monit.qx-dev.ru
 
 mysql:
   image: percona/percona-server:8.0
@@ -63,8 +68,15 @@ qmserver:
     ginMode: release
     # OAuth2 PKCE: список redirect_uri через запятую. Пусто — собрать из ingress.hosts (web/login, admin/, docs/login/callback).
     qmnetworkOAuthRedirectUris: ""
-    # Главный администратор (email через запятую): правка в QMAdmin учёток QMNetwork. Пусто — пользователь с минимальным id среди is_admin.
-    superAdminEmails: ""
+    # Публичный URL API для ссылок подтверждения email QMNetwork; пусто — http(s)://ingress.hosts.api
+    qmnetworkVerifyEmailPublicUrl: ""
+    qmnetworkSmtpHost: ""
+    qmnetworkSmtpPort: "587"
+    qmnetworkSmtpUser: ""
+    qmnetworkSmtpFrom: ""
+    qmnetworkEmailVerifyTTL: "48h"
+    # HTTP base для прокси QMServer → QMNetwork (internal API SMTP). Пусто — http://qmnetwork:8080
+    qmnetworkInternalUrl: ""
   resources:
     requests:
       cpu: 100m
@@ -102,9 +114,95 @@ qmdocs:
       cpu: 500m
       memory: 512Mi
 
+# Опциональный Postfix в кластере (отправка с вашего домена). Включите и задайте пароль в Secret qm-app: SMTP_RELAY_USERS (формат user:password).
+# QMSecret — зашифрованное хранилище секретов (только Cloud; не для Free/Pro). Требует ключи в Secret qm-app: QMSECRET_MASTER_KEY (base64, 32 байта), QMSECRET_SERVICE_TOKEN.
+qmsecret:
+  enabled: false
+  # Путь к значению в QMSecret для общего секрета QMServer ↔ QMNetwork (если не задан QMNETWORK_INTERNAL_SECRET в Secret).
+  pathQmnetworkInternal: qmserver/qmnetwork/internal_secret
+  persistence:
+    create: true
+    storage: 1Gi
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+# Опциональный мониторинг: Prometheus + Grafana + mysqld-exporter + blackbox (HTTP /health QMServer). Только внутри кластера + Ingress для Grafana.
+monitoring:
+  enabled: false
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    scrapeInterval: 30s
+    retention: 15d
+    persistence:
+      storage: 10Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 2Gi
+  grafana:
+    image: grafana/grafana:11.4.0
+    adminUser: admin
+    # Пусто — брать пароль из Secret qm-app (ключ GRAFANA_ADMIN_PASSWORD). Только для отладки:
+    adminPasswordPlain: ""
+    rootUrlScheme: https
+    # Плагины через запятую, например: grafana-clock-panel
+    installPlugins: ""
+    persistence:
+      storage: 2Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 2Gi
+  mysqlExporter:
+    image: prom/mysqld-exporter:v0.16.0
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+  blackboxExporter:
+    image: prom/blackbox-exporter:v0.25.0
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        cpu: 500m
+        memory: 128Mi
+
+smtpRelay:
+  enabled: false
+  image: docker.io/boky/postfix:latest
+  allowedSenderDomains: "qx-dev.ru"
+  hostname: smtp.qx-dev.ru
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+
 qmnetwork:
   # DSN MySQL на БД qmnetwork (тот же хост/пользователь, что QMServer). Пусто — из Secret qm-app, ключ QMNETWORK_MYSQL_DSN.
   mysqlDsn: ""
+  # Публичный origin портала (QMNETWORK_PUBLIC_ORIGIN). Пусто — https?://ingress.hosts.auth
+  publicOrigin: ""
+  # Список email администраторов QMNetwork (JWT is_admin, вход в QMAdmin через QMNetwork). Пусто — не задавать ключ в ConfigMap.
+  adminEmails: ""
   resources:
     requests:
       cpu: 25m
