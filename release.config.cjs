@@ -1,8 +1,25 @@
 /** @type {import('semantic-release').Options} */
 const path = require('path');
 
+const pushAndGithub = [
+  [
+    '@semantic-release/exec',
+    {
+      publishCmd: 'git push origin main --follow-tags',
+    },
+  ],
+  [
+    '@semantic-release/github',
+    {
+      successComment: false,
+      failComment: false,
+      releasedLabels: false,
+    },
+  ],
+];
+
 module.exports = {
-  // HTTPS: git ls-remote без SSH-ключа к origin (локальный релиз см. tools/semantic-release/README.md)
+  // HTTPS: git ls-remote без SSH-ключа к origin
   repositoryUrl:
     process.env.SEMANTIC_RELEASE_REPOSITORY_URL ||
     'https://github.com/mindevis/QMDeploy.git',
@@ -27,5 +44,6 @@ module.exports = {
         message: 'chore(release): ${nextRelease.version} [skip ci]',
       },
     ],
+    ...pushAndGithub,
   ],
 };

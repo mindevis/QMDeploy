@@ -44,15 +44,16 @@ python3 scripts/install-optional-addons.py --argocd --s3
 
 Если QM уже ставили **вручную** тем же Helm-релизом **`qm`**, первый sync GitOps может конфликтовать с существующим релизом; при проблемах: **`helm uninstall qm -n qm`** и дайте Application синхронизировать чистую установку.
 
-## Semantic-release (локально)
+## Semantic-release
 
 ```bash
 npm install
-npm run release:dry   # сухой прогон
-npm run release       # changelog, bump VERSION + Chart.yaml, коммит, тег v* (push вручную)
+export GH_TOKEN=ghp_...   # GitHub Release (classic repo или fine-grained: Contents write)
+npm run release:dry       # сухой прогон
+npm run release           # changelog, bump VERSION + Chart.yaml, коммит, тег, push, GitHub Release
 ```
 
-**`release.config.cjs`**: по умолчанию **`repositoryUrl`** — **`https://github.com/mindevis/QMDeploy.git`**, чтобы **`git ls-remote`** не требовал SSH-ключ к **`origin`** (можно переопределить: **`SEMANTIC_RELEASE_REPOSITORY_URL`**). На GitHub должна существовать ветка **`main`**; пока репозиторий пустой и **`main`** не запушена, **`release:dry`** может завершиться с **`ERELEASEBRANCHES`** — сначала **`git push -u origin main`**. Подробнее — **`tools/semantic-release/README.md`** в монорепозитории QMProject.
+**`release.config.cjs`**: по умолчанию **`repositoryUrl`** — **`https://github.com/mindevis/QMDeploy.git`** (переопределение: **`SEMANTIC_RELEASE_REPOSITORY_URL`**). После релиза выполняются **`git push origin main --follow-tags`** и создание **GitHub Release** (плагин **`@semantic-release/github`**). Без **`GH_TOKEN`** / **`GITHUB_TOKEN`** шаг GitHub упадёт; настройте push к **`origin`** (SSH/HTTPS). Подробнее — **`tools/semantic-release/README.md`** в монорепозитории QMProject.
 
 ## Версии
 
