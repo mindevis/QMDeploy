@@ -10,6 +10,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-04-06
+
+### Added
+
+- **Argo CD Application `qm`**: после **`--argocd`** скрипт создаёт приложение GitOps на чарт **`qm-project`** (шаблон **`helm/argocd/applications/qm-project.application.yaml.tpl`**, values **`helm/qm-project/values-argocd.yaml`**). Флаги: **`--argocd-skip-qm-app`**, **`--qm-repo-url`**, **`--qm-repo-revision`**, **`--qm-namespace`**.
+
 ## [1.1.0] - 2026-04-03
 
 ### Added

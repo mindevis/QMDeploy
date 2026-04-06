@@ -69,7 +69,7 @@ def _deploy_semver() -> str:
         vf = d / "VERSION"
         if vf.is_file():
             return vf.read_text(encoding="utf-8").strip().splitlines()[0].strip()
-    return "1.0.0"
+    return "1.2.0"
 
 
 def _download(url: str, dest: Path) -> None:

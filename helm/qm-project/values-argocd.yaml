@@ -1,0 +1,9 @@
+# Значения по умолчанию для Argo CD Application (GitOps) — см. helm/argocd/applications/
+# Домены как в QMDocs (qx-dev). Переопределите в своём values или в UI Argo CD.
+ingress:
+  hosts:
+    api: api.qx-dev.ru
+    admin: admin.qx-dev.ru
+    web: web.qx-dev.ru
+    docs: qm.qx-dev.ru
+    auth: auth.qx-dev.ru
