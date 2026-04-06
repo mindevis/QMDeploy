@@ -2,7 +2,7 @@
   "name": "qmdeploy-release",
   "private": true,
   "scripts": {
-    "release": "cross-env CI=false semantic-release",
+    "release": "cross-env CI=false semantic-release --no-ci",
     "release:dry": "cross-env CI=false semantic-release --dry-run"
   },
   "devDependencies": {
