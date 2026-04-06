@@ -5,7 +5,7 @@
 # CI приложений коммитит сюда полный ref (scripts/bump-qmdeploy-helm-image.py).
 images:
   qmserver: ""
-  qmadmin: ""
+  qmadmin: "ghcr.io/mindevis/qmadmin:9074dc2"
   qmweb: ""
   qmdocs: "ghcr.io/mindevis/qmdocs:65a2c3f"
   qmnetwork: ""
