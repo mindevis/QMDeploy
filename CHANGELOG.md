@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/mindevis/QMDeploy/compare/v1.8.0...v1.9.0) (2026-04-06)
+
+
+### Features
+
+* **helm:** imageRevisions for Argo rollout on :latest ([faf8f75](https://github.com/mindevis/QMDeploy/commit/faf8f75f4d2d5479e44f55a949f5557edd4c01e6))
+
 # [1.8.1](https://github.com/mindevis/QMDeploy/compare/v1.8.0...v1.8.1) (2026-04-06)
 
 
