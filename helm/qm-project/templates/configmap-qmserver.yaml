@@ -17,3 +17,4 @@ data:
   {{- $oauthUris = .Values.qmserver.config.qmnetworkOAuthRedirectUris }}
   {{- end }}
   QMNETWORK_OAUTH_REDIRECT_URIS: {{ $oauthUris | quote }}
+  QMSERVER_SUPER_ADMIN_EMAILS: {{ .Values.qmserver.config.superAdminEmails | quote }}

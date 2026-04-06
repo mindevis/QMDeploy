@@ -63,6 +63,8 @@ qmserver:
     ginMode: release
     # OAuth2 PKCE: список redirect_uri через запятую. Пусто — собрать из ingress.hosts (web/login, admin/, docs/login/callback).
     qmnetworkOAuthRedirectUris: ""
+    # Главный администратор (email через запятую): правка в QMAdmin учёток QMNetwork. Пусто — пользователь с минимальным id среди is_admin.
+    superAdminEmails: ""
   resources:
     requests:
       cpu: 100m

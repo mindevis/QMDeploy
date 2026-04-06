@@ -99,6 +99,11 @@ spec:
                 configMapKeyRef:
                   name: qm-qmserver-config
                   key: QMNETWORK_OAUTH_REDIRECT_URIS
+            - name: QMSERVER_SUPER_ADMIN_EMAILS
+              valueFrom:
+                configMapKeyRef:
+                  name: qm-qmserver-config
+                  key: QMSERVER_SUPER_ADMIN_EMAILS
             - name: DB_DSN
               valueFrom:
                 secretKeyRef:
