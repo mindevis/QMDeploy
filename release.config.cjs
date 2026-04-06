@@ -24,10 +24,10 @@ const pushAndGithub = [
 ];
 
 module.exports = {
-  // HTTPS: git ls-remote без SSH-ключа к origin
+  // SSH (как у origin); переопределение: SEMANTIC_RELEASE_REPOSITORY_URL
   repositoryUrl:
     process.env.SEMANTIC_RELEASE_REPOSITORY_URL ||
-    'https://github.com/mindevis/QMDeploy.git',
+    'git@github.com:mindevis/QMDeploy.git',
   branches: ['main'],
   plugins: [
     '@semantic-release/commit-analyzer',
