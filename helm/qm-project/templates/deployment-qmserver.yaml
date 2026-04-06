@@ -43,6 +43,7 @@ spec:
         app: qmserver
         {{- include "qm.labels" . | nindent 8 }}
         app.kubernetes.io/part-of: qm-project
+{{- include "qm.podImageRevisionBlock" (list . "qmserver") }}
     spec:
       hostNetwork: {{ .Values.qmserver.hostNetwork }}
       dnsPolicy: ClusterFirstWithHostNet

@@ -1,3 +1,10 @@
+# [1.8.1](https://github.com/mindevis/QMDeploy/compare/v1.8.0...v1.8.1) (2026-04-06)
+
+
+### Features
+
+* **helm:** `imageRevisions.<service>` + аннотация pod — Argo CD выкатывает новый digest при `:latest`; bump-скрипт пишет тег из `--image-ref`.
+
 # [1.8.0](https://github.com/mindevis/QMDeploy/compare/v1.7.0...v1.8.0) (2026-04-06)
 
 

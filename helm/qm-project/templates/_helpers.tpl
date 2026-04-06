@@ -33,6 +33,20 @@ app.kubernetes.io/part-of: qm-project
 {{- end }}
 
 {{/*
+Аннотация pod template: меняется CI bump (imageRevisions.<svc>) при том же image:…:latest,
+чтобы Argo CD и Kubernetes сделали rollout и подтянули новый digest из GHCR.
+*/}}
+{{- define "qm.podImageRevisionBlock" -}}
+{{- $root := index . 0 }}
+{{- $svc := index . 1 }}
+{{- $r := index ($root.Values.imageRevisions | default dict) $svc }}
+{{- if $r }}
+      annotations:
+        qm-project.io/image-revision: {{ $r | quote }}
+{{- end }}
+{{- end }}
+
+{{/*
 Defaults for qmnetwork when .Values.qmnetwork is missing (e.g. helm upgrade --reuse-values after chart added qmnetwork).
 */}}
 {{- define "qm.qmnetwork.defaultResources" -}}

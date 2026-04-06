@@ -21,6 +21,16 @@ images:
   qmnetwork: ""
   qmsecret: ""
 
+# Тег/ревизия образа из CI (short SHA и т.д.): bump-qmdeploy выставляет imageRevisions.<сервис>,
+# чтобы при :latest менялась аннотация пода и Argo выкатывал новый digest.
+imageRevisions:
+  qmserver: ""
+  qmadmin: ""
+  qmweb: ""
+  qmdocs: ""
+  qmnetwork: ""
+  qmsecret: ""
+
 # Uncomment after creating the secret (same as flat manifests):
 # imagePullSecrets:
 #   - name: ghcr-credentials

@@ -36,6 +36,7 @@ spec:
         app: qmadmin
         {{- include "qm.labels" . | nindent 8 }}
         app.kubernetes.io/part-of: qm-project
+{{- include "qm.podImageRevisionBlock" (list . "qmadmin") }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

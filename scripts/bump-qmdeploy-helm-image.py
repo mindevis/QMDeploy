@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Обновляет helm/qm-project/values-argocd.yaml для GitOps без пина по SHA:
+Обновляет helm/qm-project/values-argocd.yaml для GitOps без пина полного ref образа в images.*:
   imageTag: latest
-  images.<service>: ""  → образ ghcr.io/<ghcrOwner>/<service>:latest (см. templates/_helpers.tpl)
+  images.<service>: ""  → ghcr.io/<ghcrOwner>/<service>:latest
+  imageRevisions.<service>: <тег из --image-ref> — меняет аннотацию pod, чтобы Argo выкатил новый digest.
 
-Аргументы --service и --image-ref оставлены для совместимости с CI (сообщение коммита / трассировка сборки);
-в YAML тег сборки не записывается — в GHCR публикуется и latest, и SHA.
+Аргумент --image-ref: ghcr.io/org/name:tag — tag (short SHA, latest, semver) пишется в imageRevisions.
 """
 from __future__ import annotations
 
@@ -16,18 +16,24 @@ from pathlib import Path
 VALID_SERVICES = frozenset({"qmdocs", "qmadmin", "qmweb", "qmserver", "qmnetwork", "qmsecret"})
 
 
+def parse_image_tag(image_ref: str) -> str:
+    if not image_ref or ":" not in image_ref:
+        return ""
+    return image_ref.rsplit(":", 1)[-1].strip()
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
         "--service",
         required=True,
         choices=sorted(VALID_SERVICES),
-        help="Какой сервис собрали (для логов; в YAML выставляются все images.* одинаково)",
+        help="Сервис, для которого обновить imageRevisions",
     )
     p.add_argument(
         "--image-ref",
         default="",
-        help="Референс сборки (не пишется в values; только для сообщения коммита в workflow)",
+        help="Полная ссылка на образ (тег после последнего : попадёт в imageRevisions.<service>)",
     )
     p.add_argument(
         "--file",
@@ -60,6 +66,14 @@ def main() -> None:
         data["images"] = {}
     for svc in sorted(VALID_SERVICES):
         data["images"][svc] = ""
+
+    if "imageRevisions" not in data or data["imageRevisions"] is None:
+        data["imageRevisions"] = {}
+    for svc in sorted(VALID_SERVICES):
+        data["imageRevisions"].setdefault(svc, "")
+    tag = parse_image_tag(args.image_ref)
+    if tag:
+        data["imageRevisions"][args.service] = tag
 
     with path.open("w", encoding="utf-8") as fp:
         yaml.dump(data, fp)

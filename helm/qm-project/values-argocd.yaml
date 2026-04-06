@@ -14,6 +14,15 @@ images:
   qmnetwork: ""
   qmsecret: ""
 
+# Заполняется CI (bump): меняется при новой сборке, чтобы Argo синкнул rollout без пина образа в spec.
+imageRevisions:
+  qmserver: ""
+  qmadmin: ""
+  qmweb: ""
+  qmdocs: ""
+  qmnetwork: ""
+  qmsecret: ""
+
 # kubectl create secret docker-registry ghcr-credentials -n qm --docker-server=ghcr.io --docker-username=... --docker-password=...
 imagePullSecrets:
   - name: ghcr-credentials
