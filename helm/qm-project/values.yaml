@@ -75,7 +75,7 @@ qmserver:
     qmnetworkSmtpUser: ""
     qmnetworkSmtpFrom: ""
     qmnetworkEmailVerifyTTL: "48h"
-    # HTTP base для прокси QMServer → QMNetwork (internal API SMTP). Пусто — http://qmnetwork:8080
+    # HTTP base для прокси QMServer → QMNetwork (internal API SMTP). Пусто — http://qmnetwork:<qmnetwork.port>
     qmnetworkInternalUrl: ""
   resources:
     requests:
@@ -199,6 +199,8 @@ smtpRelay:
       memory: 512Mi
 
 qmnetwork:
+  # HTTP-порт пода/Service (не 8080 — QMServer слушает :8080). LISTEN и QMNETWORK_INTERNAL_URL в ConfigMap QMServer согласованы с этим значением.
+  port: 9087
   # DSN MySQL на БД qmnetwork (тот же хост/пользователь, что QMServer). Пусто — из Secret qm-app, ключ QMNETWORK_MYSQL_DSN.
   mysqlDsn: ""
   # Публичный origin портала (QMNETWORK_PUBLIC_ORIGIN). Пусто — https?://ingress.hosts.auth

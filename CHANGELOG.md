@@ -1,3 +1,10 @@
+## [1.4.6](https://github.com/mindevis/QMDeploy/compare/v1.4.5...v1.4.6) (2026-04-06)
+
+
+### Changed
+
+* **helm `qmnetwork`:** порт по умолчанию **9087** (`qmnetwork.port`), **`QMNETWORK_INTERNAL_URL`**, Service и Ingress согласованы; QMServer остаётся на **8080**.
+
 ## [1.4.5](https://github.com/mindevis/QMDeploy/compare/v1.4.4...v1.4.5) (2026-04-06)
 
 

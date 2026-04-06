@@ -1,3 +1,5 @@
+{{- $qmn := .Values.qmnetwork | default dict }}
+{{- $qmnPort := $qmn.port | default 9087 }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -16,7 +18,7 @@ data:
   {{- $jwksScheme = "https" }}
   {{- end }}
   QMNETWORK_JWKS_URL: {{ printf "%s://%s/.well-known/jwks.json" $jwksScheme .Values.ingress.hosts.auth | quote }}
-  QMNETWORK_INTERNAL_URL: {{ .Values.qmserver.config.qmnetworkInternalUrl | default "http://qmnetwork:8080" | quote }}
+  QMNETWORK_INTERNAL_URL: {{ .Values.qmserver.config.qmnetworkInternalUrl | default (printf "http://qmnetwork:%v" $qmnPort) | quote }}
   {{- if .Values.qmsecret.enabled }}
   QMSECRET_BASE_URL: {{ printf "http://qmsecret:%v" (.Values.qmsecret.port | default 9088) | quote }}
   QMSECRET_PATH_QMNETWORK_INTERNAL: {{ .Values.qmsecret.pathQmnetworkInternal | default "qmserver/qmnetwork/internal_secret" | quote }}

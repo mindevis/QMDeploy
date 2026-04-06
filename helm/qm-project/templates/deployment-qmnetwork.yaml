@@ -1,3 +1,5 @@
+{{- $qmn := .Values.qmnetwork | default dict }}
+{{- $qmnPort := $qmn.port | default 9087 }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -11,7 +13,7 @@ spec:
   type: ClusterIP
   ports:
     - name: http
-      port: 8080
+      port: {{ $qmnPort }}
       targetPort: http
   selector:
     app: qmnetwork
@@ -26,7 +28,6 @@ metadata:
     app.kubernetes.io/name: qmnetwork
     app.kubernetes.io/part-of: qm-project
 spec:
-  {{- $qmn := .Values.qmnetwork | default dict }}
   replicas: 1
   selector:
     matchLabels:
@@ -52,7 +53,7 @@ spec:
                 name: qm-qmnetwork-config
           env:
             - name: LISTEN
-              value: ":8080"
+              value: {{ printf ":%v" $qmnPort | quote }}
             {{- if $qmn.mysqlDsn }}
             - name: QMNETWORK_MYSQL_DSN
               value: {{ $qmn.mysqlDsn | quote }}
@@ -77,7 +78,7 @@ spec:
                   optional: true
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: {{ $qmnPort }}
           readinessProbe:
             httpGet:
               path: /readyz

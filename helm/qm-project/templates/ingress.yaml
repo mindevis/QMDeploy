@@ -62,7 +62,7 @@ spec:
               service:
                 name: qmnetwork
                 port:
-                  number: 8080
+                  number: {{ .Values.qmnetwork.port | default 9087 }}
     {{- if .Values.qmsecret.enabled }}
     - host: {{ .Values.ingress.hosts.key | default "key.qx-dev.ru" | quote }}
       http:
