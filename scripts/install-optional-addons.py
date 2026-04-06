@@ -10,6 +10,9 @@
   ./install-optional-addons.py --argocd --s3
   ./install-optional-addons.py --argocd --argocd-skip-qm-app   # только Argo CD без Application qm
   ./install-optional-addons.py --s3 --minio-root-password 'секрет'
+  ./install-optional-addons.py --uninstall-argocd            # полное удаление Argo CD (Application + Helm + ns)
+  ./install-optional-addons.py --uninstall-s3                # полное удаление MinIO (Helm + ns)
+  ./install-optional-addons.py --uninstall-argocd --uninstall-s3
 """
 from __future__ import annotations
 
@@ -139,6 +142,67 @@ def apply_argocd_qm_application(args: argparse.Namespace) -> None:
     )
 
 
+def uninstall_argocd(args: argparse.Namespace) -> None:
+    """Удаляет все Application в argocd, Helm-релиз argocd и namespace argocd."""
+    ensure_kubectl()
+    ensure_helm()
+    k = kubectl_cmd(args)
+    h = helm_cmd(args)
+    ns_check = subprocess.run(
+        [*k, "get", "namespace", "argocd", "-o", "name"],
+        capture_output=True,
+    )
+    if ns_check.returncode != 0:
+        print("Argo CD: namespace argocd не найден — нечего удалять.", flush=True)
+        return
+    print("kubectl: удаление всех Application в namespace argocd …", flush=True)
+    subprocess.run(
+        [
+            *k,
+            "delete",
+            "applications.argoproj.io",
+            "--all",
+            "-n",
+            "argocd",
+            "--wait=true",
+            "--timeout=5m",
+        ],
+        check=False,
+    )
+    print("Helm: uninstall argocd …", flush=True)
+    subprocess.run([*h, "uninstall", "argocd", "-n", "argocd"], check=False)
+    print("kubectl: удаление namespace argocd …", flush=True)
+    subprocess.run(
+        [*k, "delete", "namespace", "argocd", "--wait=true", "--timeout=10m"],
+        check=False,
+    )
+    print("Argo CD: удаление завершено.", flush=True)
+
+
+def uninstall_minio(args: argparse.Namespace) -> None:
+    """Helm uninstall minio и удаление namespace MinIO."""
+    ensure_kubectl()
+    ensure_helm()
+    k = kubectl_cmd(args)
+    h = helm_cmd(args)
+    ns = args.minio_namespace
+    ns_check = subprocess.run(
+        [*k, "get", "namespace", ns, "-o", "name"],
+        capture_output=True,
+    )
+    if ns_check.returncode != 0:
+        print(f"MinIO: namespace {ns} не найден — нечего удалять.", flush=True)
+        return
+    print(f"Helm: uninstall minio (namespace {ns}) …", flush=True)
+    subprocess.run([*h, "uninstall", "minio", "-n", ns], check=False)
+    print(f"kubectl: удаление namespace {ns} …", flush=True)
+    subprocess.run(
+        [*k, "delete", "namespace", ns, "--wait=true", "--timeout=10m"],
+        check=False,
+    )
+    print("MinIO: удаление завершено.", flush=True)
+
+
 def install_minio(args: argparse.Namespace) -> None:
     h = helm_cmd(args)
     run([*h, "repo", "add", "bitnami", "https://charts.bitnami.com/bitnami"], check=False)
@@ -172,10 +236,23 @@ def install_minio(args: argparse.Namespace) -> None:
 
 def main() -> None:
     p = argparse.ArgumentParser(
-        description="Helm: опционально Argo CD и/или MinIO (S3). Нужен хотя бы один флаг --argocd | --s3."
+        description=(
+            "Helm: опционально Argo CD и/или MinIO (S3). "
+            "Нужен хотя бы один флаг установки (--argocd | --s3) или удаления (--uninstall-argocd | --uninstall-s3)."
+        )
     )
     p.add_argument("--argocd", action="store_true", help="Argo CD (chart argo/argo-cd, ns argocd)")
     p.add_argument("--s3", action="store_true", help="MinIO S3 (chart bitnami/minio)")
+    p.add_argument(
+        "--uninstall-argocd",
+        action="store_true",
+        help="Полное удаление Argo CD: все Application в ns argocd, helm uninstall argocd, удаление ns argocd",
+    )
+    p.add_argument(
+        "--uninstall-s3",
+        action="store_true",
+        help="Полное удаление MinIO: helm uninstall minio, удаление namespace MinIO (--minio-namespace)",
+    )
     p.add_argument("--kubeconfig", help="Kubeconfig для helm/kubectl")
     p.add_argument(
         "--argocd-host",
@@ -216,10 +293,29 @@ def main() -> None:
     if args.deploy_version:
         print(_deploy_semver())
         return
-    if not args.argocd and not args.s3:
-        print("Укажите хотя бы один флаг: --argocd или --s3", file=sys.stderr)
+    if args.argocd and args.uninstall_argocd:
+        print("Нельзя одновременно --argocd и --uninstall-argocd.", file=sys.stderr)
+        sys.exit(1)
+    if args.s3 and args.uninstall_s3:
+        print("Нельзя одновременно --s3 и --uninstall-s3.", file=sys.stderr)
+        sys.exit(1)
+    if not args.argocd and not args.s3 and not args.uninstall_argocd and not args.uninstall_s3:
+        print(
+            "Укажите хотя бы один флаг: --argocd, --s3, --uninstall-argocd или --uninstall-s3",
+            file=sys.stderr,
+        )
         sys.exit(1)
     if args.dry_run:
+        if args.uninstall_argocd:
+            print(
+                "DRY-RUN: kubectl delete applications.argoproj.io --all -n argocd --wait; "
+                "helm uninstall argocd -n argocd; kubectl delete namespace argocd"
+            )
+        if args.uninstall_s3:
+            print(
+                f"DRY-RUN: helm uninstall minio -n {args.minio_namespace}; "
+                f"kubectl delete namespace {args.minio_namespace}"
+            )
         if args.argocd:
             vf = Path(__file__).resolve().parent.parent / "helm" / "argocd" / "values-k3s.yaml"
             print(
@@ -239,9 +335,13 @@ def main() -> None:
             )
         sys.exit(0)
     ensure_helm()
-    if args.argocd:
+    if args.uninstall_argocd:
+        uninstall_argocd(args)
+    elif args.argocd:
         install_argocd(args)
-    if args.s3:
+    if args.uninstall_s3:
+        uninstall_minio(args)
+    elif args.s3:
         install_minio(args)
 
 

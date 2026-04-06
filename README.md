@@ -36,6 +36,14 @@ sudo python3 /opt/qm/scripts/install-k3s-helm.py -f my-values.yaml
 python3 scripts/install-optional-addons.py --argocd --s3
 ```
 
+Полное удаление (все Application в `argocd`, `helm uninstall`, удаление namespace):
+
+```bash
+python3 scripts/install-optional-addons.py --uninstall-argocd
+python3 scripts/install-optional-addons.py --uninstall-s3
+python3 scripts/install-optional-addons.py --uninstall-argocd --uninstall-s3
+```
+
 **Argo CD:** по умолчанию UI на **`https://k3s.qx-dev.ru`** (Ingress, класс **traefik**, как у чарта **`qm-project`**; значения — **`helm/argocd/values-k3s.yaml`**). Другой хост: **`--argocd-host example.com`**. В DNS добавьте A-запись **`k3s.qx-dev.ru`** на IP ноды (или LB).
 
 После установки Argo CD скрипт **создаёт Application `qm`** (`kubectl apply` из шаблона **`helm/argocd/applications/qm-project.application.yaml.tpl`**): в UI сразу виден **QM Project** (чарт **`helm/qm-project`**, values **`values-argocd.yaml`** — домены **\*.qx-dev.ru**). Источник в Git: **`--qm-repo-url`** (по умолчанию публичный **`https://github.com/mindevis/QMDeploy.git`**), ревизия **`--qm-repo-revision`** (по умолчанию **`main`**). Чтобы не регистрировать приложение (только Argo CD): **`--argocd-skip-qm-app`**.
