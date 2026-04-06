@@ -9,7 +9,7 @@ images:
   qmweb: "ghcr.io/mindevis/qmweb:639cc13"
   qmdocs: "ghcr.io/mindevis/qmdocs:f512c9b"
   qmnetwork: "ghcr.io/mindevis/qmnetwork:6090945"
-  qmsecret: "ghcr.io/mindevis/qmsecret:2e0044f"
+  qmsecret: "ghcr.io/mindevis/qmsecret:03b279b"
 
 ingress:
   hosts:
