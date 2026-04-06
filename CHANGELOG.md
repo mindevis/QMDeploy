@@ -1,3 +1,17 @@
+# [1.5.0](https://github.com/mindevis/QMDeploy/compare/v1.4.2...v1.5.0) (2026-04-06)
+
+
+### Bug Fixes
+
+* **helm:** QMNETWORK_OAUTH_REDIRECT_URIS for qmserver PKCE ([783af89](https://github.com/mindevis/QMDeploy/commit/783af8932d99ff4a8395c80f60bebfb00de4dcdf))
+
+
+### Features
+
+* **helm:** qmnetwork.port 9087, sync Service/Ingress/QMServer ([80858ea](https://github.com/mindevis/QMDeploy/commit/80858ea844ff8ba514867dab9da6b9449c2690cb))
+* **helm:** qmsecret.port 9088, sync Service/Ingress/QMServer config ([8120b25](https://github.com/mindevis/QMDeploy/commit/8120b25faac371a19320e682ee3ddab45052c429))
+* **helm:** QMSERVER_SUPER_ADMIN_EMAILS for primary admin ([59c81e0](https://github.com/mindevis/QMDeploy/commit/59c81e0abd529c3113998eadc066ff1f6d279b78))
+
 ## [1.4.7](https://github.com/mindevis/QMDeploy/compare/v1.4.6...v1.4.7) (2026-04-06)
 
 
