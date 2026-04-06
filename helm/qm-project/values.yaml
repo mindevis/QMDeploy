@@ -118,6 +118,8 @@ qmdocs:
 # QMSecret — зашифрованное хранилище секретов (только Cloud; не для Free/Pro). Требует ключи в Secret qm-app: QMSECRET_MASTER_KEY (base64, 32 байта), QMSECRET_SERVICE_TOKEN.
 qmsecret:
   enabled: false
+  # HTTP-порт пода/Service (по умолчанию не 8080 — у QMServer и QMNetwork в кластере уже :8080). LISTEN и QMSECRET_BASE_URL выставляются чартом.
+  port: 9088
   # Путь к значению в QMSecret для общего секрета QMServer ↔ QMNetwork (если не задан QMNETWORK_INTERNAL_SECRET в Secret).
   pathQmnetworkInternal: qmserver/qmnetwork/internal_secret
   persistence:

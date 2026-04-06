@@ -1,3 +1,10 @@
+## [1.4.5](https://github.com/mindevis/QMDeploy/compare/v1.4.4...v1.4.5) (2026-04-06)
+
+
+### Changed
+
+* **helm `qmsecret`:** порт по умолчанию **9088** (`qmsecret.port`), **`QMSECRET_BASE_URL`** и Service/Ingress согласованы; не **8080** (QMServer/QMNetwork).
+
 ## [1.4.4](https://github.com/mindevis/QMDeploy/compare/v1.4.3...v1.4.4) (2026-04-03)
 
 

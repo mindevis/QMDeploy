@@ -18,6 +18,6 @@ data:
   QMNETWORK_JWKS_URL: {{ printf "%s://%s/.well-known/jwks.json" $jwksScheme .Values.ingress.hosts.auth | quote }}
   QMNETWORK_INTERNAL_URL: {{ .Values.qmserver.config.qmnetworkInternalUrl | default "http://qmnetwork:8080" | quote }}
   {{- if .Values.qmsecret.enabled }}
-  QMSECRET_BASE_URL: "http://qmsecret:8080"
+  QMSECRET_BASE_URL: {{ printf "http://qmsecret:%v" (.Values.qmsecret.port | default 9088) | quote }}
   QMSECRET_PATH_QMNETWORK_INTERNAL: {{ .Values.qmsecret.pathQmnetworkInternal | default "qmserver/qmnetwork/internal_secret" | quote }}
   {{- end }}

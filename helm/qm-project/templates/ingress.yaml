@@ -73,7 +73,7 @@ spec:
               service:
                 name: qmsecret
                 port:
-                  number: 8080
+                  number: {{ .Values.qmsecret.port | default 9088 }}
     {{- end }}
     {{- if .Values.monitoring.enabled }}
     - host: {{ .Values.ingress.hosts.grafana | default "monit.qx-dev.ru" | quote }}
