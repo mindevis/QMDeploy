@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/mindevis/QMDeploy/compare/v1.6.0...v1.7.0) (2026-04-06)
+
+
+### Features
+
+* **gitops:** bump script sets imageTag latest, no SHA pins in values-argocd ([ec166d0](https://github.com/mindevis/QMDeploy/commit/ec166d00b709543ec27b6ac06279132f131ef902))
+
 # [1.6.0](https://github.com/mindevis/QMDeploy/compare/v1.5.0...v1.6.0) (2026-04-06)
 
 
