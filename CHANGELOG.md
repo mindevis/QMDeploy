@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/mindevis/QMDeploy/compare/v1.4.0...v1.4.1) (2026-04-06)
+
+
+### Bug Fixes
+
+* **release:** add semantic-release --no-ci for real local push ([8fd9ef7](https://github.com/mindevis/QMDeploy/commit/8fd9ef71de33d667fdbdbb13b3b884603f7c04c8))
+
 # [1.4.0](https://github.com/mindevis/QMDeploy/compare/v1.3.0...v1.4.0) (2026-04-06)
 
 
