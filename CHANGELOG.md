@@ -1,3 +1,11 @@
+# [1.4.0](https://github.com/mindevis/QMDeploy/compare/v1.3.0...v1.4.0) (2026-04-06)
+
+
+### Features
+
+* **gitops:** reusable workflow and script to bump images in values-argocd ([b419d09](https://github.com/mindevis/QMDeploy/commit/b419d095e77d72c9e68fc11085bb76080f295187))
+* **script:** uninstall Argo CD and MinIO S3 (--uninstall-argocd, --uninstall-s3) ([818b17a](https://github.com/mindevis/QMDeploy/commit/818b17a93f1083be99c4fd5be5e4eeef45dd30bb))
+
 # [1.3.0](https://github.com/mindevis/QMDeploy/compare/v1.2.0...v1.3.0) (2026-04-06)
 
 
