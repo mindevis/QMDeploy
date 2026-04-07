@@ -36,6 +36,26 @@ def _install_k3s() -> None:
     )
 
 
+def _warn_missing_secrets(namespace: str) -> None:
+    """Подсказка до helm: без qm-mysql поды упадут до создания секретов."""
+    if os.environ.get("SKIP_SECRET_CHECK"):
+        return
+    if not shutil.which("kubectl"):
+        return
+    r = subprocess.run(
+        ["kubectl", "get", "secret", "qm-mysql", "-n", namespace],
+        capture_output=True,
+    )
+    if r.returncode != 0:
+        helper = ROOT / "scripts" / "create-greenfield-secrets.py"
+        print(
+            f"WARNING: secret qm-mysql not in namespace {namespace!r}. "
+            f"Create secrets first, e.g.: python3 {helper} -n {namespace}\n"
+            f"(suppress: SKIP_SECRET_CHECK=1)",
+            file=sys.stderr,
+        )
+
+
 def main() -> None:
     if len(sys.argv) > 1 and sys.argv[1] in ("-h", "--help"):
         print(
@@ -66,6 +86,8 @@ def main() -> None:
     namespace = os.environ.get("NAMESPACE", "qm")
     release = os.environ.get("RELEASE_NAME", "qm")
     helm_extra = sys.argv[1:]
+
+    _warn_missing_secrets(namespace)
 
     cmd = [
         "helm",

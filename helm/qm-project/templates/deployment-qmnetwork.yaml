@@ -44,6 +44,18 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: wait-mysql
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              for i in $(seq 1 90); do
+                if nc -z mysql 3306; then exit 0; fi
+                sleep 2
+              done
+              exit 1
       containers:
         - name: qmnetwork
           {{- $img := include "qm.image" (list . "qmnetwork") }}
