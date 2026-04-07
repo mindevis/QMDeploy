@@ -1,3 +1,10 @@
+# [1.9.30](https://github.com/mindevis/QMDeploy/compare/v1.9.29...v1.9.30) (2026-04-07)
+
+
+### Added
+
+* **helm / qmnetwork:** переменная **`QMSERVER_INTERNAL_API_URL`** (по умолчанию **`http://qmserver:<port>`**); **`qmnetwork.qmserverInternalApiUrl`** в values.
+
 # [1.9.29](https://github.com/mindevis/QMDeploy/compare/v1.9.28...v1.9.29) (2026-04-07)
 
 

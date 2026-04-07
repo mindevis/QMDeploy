@@ -263,6 +263,8 @@ qmnetwork:
     name: ""
     key: password
   redisDb: 0
+  # POST к QMServer после подтверждения email (provision строки в users для админки). Пусто — http://qmserver:<qmserver.config.port>.
+  qmserverInternalApiUrl: ""
   # DSN MySQL на БД qmnetwork (тот же хост/пользователь, что QMServer). Пусто — из Secret qm-app, ключ QMNETWORK_MYSQL_DSN.
   mysqlDsn: ""
   # Публичный origin портала (QMNETWORK_PUBLIC_ORIGIN). Пусто — https?://ingress.hosts.auth

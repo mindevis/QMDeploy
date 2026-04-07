@@ -6,6 +6,8 @@
 {{- $redisAddr = "qm-redis:6379" }}
 {{- end }}
 {{- $redisDb := $qmn.redisDb | default 0 | int }}
+{{- $qsPort := .Values.qmserver.config.port | default 8080 }}
+{{- $qmsInternal := $qmn.qmserverInternalApiUrl | default (printf "http://qmserver:%v" $qsPort) }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -116,6 +118,8 @@ spec:
                   name: qm-app
                   key: QMNETWORK_INTERNAL_SECRET
                   optional: true
+            - name: QMSERVER_INTERNAL_API_URL
+              value: {{ $qmsInternal | quote }}
 {{- if ne $redisAddr "" }}
             - name: QMNETWORK_REDIS_ADDR
               value: {{ $redisAddr | quote }}
