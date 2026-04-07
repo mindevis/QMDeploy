@@ -1,3 +1,11 @@
+# [1.9.27](https://github.com/mindevis/QMDeploy/compare/v1.9.26...v1.9.27) (2026-04-07)
+
+
+### Fixed
+
+* **helm:** ConfigMap **qmnetwork** — **`QMNETWORK_SMTP_TLS_SERVER_NAME`** (по умолчанию **`smtpRelay.hostname`** при **`smtp-relay`**) для STARTTLS к Postfix с сертификатом на публичный FQDN, не на имя Service.
+* **values:** **`qmserver.config.qmnetworkSmtpTlsServerName`** (опционально).
+
 # [1.9.26](https://github.com/mindevis/QMDeploy/compare/v1.9.25...v1.9.26) (2026-04-07)
 
 
