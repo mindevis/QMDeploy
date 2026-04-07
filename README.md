@@ -112,7 +112,7 @@ python3 scripts/k8s-manage.py addons --grafana
 python3 scripts/k8s-manage.py addons --phpmyadmin
 ```
 
-**Grafana / phpMyAdmin / MinIO одной командой:** скрипт задаёт параметры Helm (через Argo Application **qm** или `helm upgrade qm --reuse-values`), для Grafana генерирует **`GRAFANA_ADMIN_PASSWORD`** в Secret **`qm-app`**, для MinIO при необходимости включает Ingress на **`s3.qx-dev.ru`** (или **`--minio-internal`** без Ingress). Домены по умолчанию совпадают с **`values-argocd.yaml`**; переопределение: **`--grafana-host`**, **`--phpmyadmin-host`**, **`--minio-host`**. Учётные данные печатаются в консоль после выполнения.
+**Grafana / phpMyAdmin / MinIO** выполняются **через Argo CD**, а не `helm upgrade` с сервера: для **qm** обновляется Application **qm** (helm parameters + refresh), для **MinIO** создаётся Application **minio** (чарт Bitnami с общего Helm-репозитория). Нужен уже установленный **Argo CD** и Application **qm** (`addons --argocd`). Grafana: patch Secret **`qm-app`** и параметр **`monitoring.enabled`**: MinIO: **`--minio-chart-version`** при необходимости (по умолчанию зафиксирована версия чарта). **`--uninstall-s3`**: `kubectl delete application minio -n argocd`. Учётные данные по-прежнему печатаются в консоль.
 
 Полное удаление (все Application в `argocd`, `helm uninstall`, удаление namespace):
 

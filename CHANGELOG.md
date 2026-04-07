@@ -1,3 +1,10 @@
+# [1.9.35](https://github.com/mindevis/QMDeploy/compare/v1.9.34...v1.9.35) (2026-04-07)
+
+
+### Changed
+
+* **k8s-manage.py addons (GitOps):** Grafana и phpMyAdmin — **только** через Argo Application **qm** (`kubectl replace` + helm parameters); **`--s3`** — **Application minio** в **argocd** (Bitnami chart), без **`helm upgrade`** MinIO с хоста; **`--uninstall-s3`** сначала удаляет Application **minio**; флаг **`--minio-chart-version`**.
+
 # [1.9.34](https://github.com/mindevis/QMDeploy/compare/v1.9.33...v1.9.34) (2026-04-07)
 
 

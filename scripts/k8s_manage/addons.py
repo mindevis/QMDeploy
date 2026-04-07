@@ -14,6 +14,7 @@
   python3 scripts/k8s-manage.py addons --s3
   python3 scripts/k8s-manage.py addons --argocd --argocd-skip-qm-app
   python3 scripts/k8s-manage.py addons --s3 --minio-root-password 'секрет'
+  # --s3 создаёт Argo CD Application minio (нужен уже установленный Argo CD)
   python3 scripts/k8s-manage.py addons --uninstall-argocd
   python3 scripts/k8s-manage.py addons --uninstall-s3
   python3 scripts/k8s-manage.py addons --uninstall-argocd --uninstall-s3
@@ -189,44 +190,79 @@ def _argo_app_merge_helm_params(args: argparse.Namespace, updates: dict[str, str
     return True
 
 
-def _helm_qm_upgrade_sets(args: argparse.Namespace, helm_sets: list[str]) -> bool:
-    h = helm_cmd(args)
-    chart = _QMDEPLOY_ROOT / "helm" / "qm-project"
-    if not (chart / "Chart.yaml").is_file():
-        print(f"ОШИБКА: нет чарта {chart}", file=sys.stderr)
-        return False
-    r = subprocess.run(
-        [*h, "status", "qm", "-n", args.qm_namespace],
-        capture_output=True,
-    )
-    if r.returncode != 0:
-        print(
-            f"ОШИБКА: Helm-релиз qm в ns {args.qm_namespace} не найден. "
-            "Установите стек или создайте Application qm в Argo CD.",
-            file=sys.stderr,
-        )
-        return False
-    cmd = [
-        *h,
-        "upgrade",
-        "qm",
-        str(chart),
-        "-n",
-        args.qm_namespace,
-        "--reuse-values",
-        *helm_sets,
-    ]
-    return subprocess.run(cmd).returncode == 0
-
-
-def _qm_set_helm_values(args: argparse.Namespace, updates: dict[str, str]) -> bool:
+def _qm_set_helm_values_via_argo(args: argparse.Namespace, updates: dict[str, str]) -> bool:
+    """Только Argo CD Application qm (kubectl replace + refresh). Прямой helm upgrade с хоста не используется."""
     if _argo_app_merge_helm_params(args, updates):
         return True
-    print("Application qm в Argo CD не найдена — helm upgrade qm --reuse-values …", flush=True)
-    sets: list[str] = []
-    for name, value in updates.items():
-        sets.extend(["--set", f"{name}={value}"])
-    return _helm_qm_upgrade_sets(args, sets)
+    print(
+        "ОШИБКА: Application qm в namespace argocd не найдена. "
+        "Grafana/phpMyAdmin включаются через GitOps: k8s-manage.py addons --argocd "
+        "(Application qm из Git + синхронизация).",
+        file=sys.stderr,
+    )
+    return False
+
+
+def apply_minio_argo_application(args: argparse.Namespace, root_password: str) -> None:
+    """Регистрирует Argo CD Application minio (чарт bitnami/minio с Helm-репозитория)."""
+    k = kubectl_cmd(args)
+    ingress_on = bool(args.minio_host.strip())
+    host = args.minio_host.strip() or "minio.local"
+    params: list[dict[str, str]] = [
+        {"name": "auth.rootUser", "value": args.minio_root_user},
+        {"name": "auth.rootPassword", "value": root_password},
+        {"name": "ingress.enabled", "value": "true" if ingress_on else "false"},
+        {"name": "ingress.hostname", "value": host},
+        {"name": "ingress.ingressClassName", "value": args.minio_ingress_class},
+    ]
+    app: dict[str, Any] = {
+        "apiVersion": "argoproj.io/v1alpha1",
+        "kind": "Application",
+        "metadata": {
+            "name": "minio",
+            "namespace": "argocd",
+            "labels": {
+                "app.kubernetes.io/name": "minio",
+                "app.kubernetes.io/part-of": "qm-addons",
+            },
+        },
+        "spec": {
+            "project": "default",
+            "source": {
+                "repoURL": "https://charts.bitnami.com/bitnami",
+                "chart": "minio",
+                "targetRevision": args.minio_chart_version,
+                "helm": {"parameters": params},
+            },
+            "destination": {
+                "server": "https://kubernetes.default.svc",
+                "namespace": args.minio_namespace,
+            },
+            "syncPolicy": {
+                "automated": {"prune": True, "selfHeal": True},
+                "syncOptions": ["CreateNamespace=true"],
+            },
+        },
+    }
+    raw = json.dumps(app, ensure_ascii=False)
+    subprocess.run([*k, "apply", "-f", "-"], input=raw.encode("utf-8"), check=True)
+    subprocess.run(
+        [
+            *k,
+            "annotate",
+            "application",
+            "minio",
+            "-n",
+            "argocd",
+            "argocd.argoproj.io/refresh=hard",
+            "--overwrite",
+        ],
+        check=False,
+    )
+    print(
+        "Argo CD: Application minio применена; дождитесь Sync (автоматический).",
+        flush=True,
+    )
 
 
 def enable_grafana_addon(args: argparse.Namespace) -> None:
@@ -246,7 +282,7 @@ def enable_grafana_addon(args: argparse.Namespace) -> None:
     pwd = _random_password()
     print("Grafana: monitoring.enabled=true, пароль admin → Secret qm-app (GRAFANA_ADMIN_PASSWORD) …", flush=True)
     _patch_secret_data_key(k, args.qm_namespace, "qm-app", "GRAFANA_ADMIN_PASSWORD", pwd)
-    if not _qm_set_helm_values(args, {"monitoring.enabled": "true"}):
+    if not _qm_set_helm_values_via_argo(args, {"monitoring.enabled": "true"}):
         sys.exit(1)
     subprocess.run(
         [*k, "rollout", "restart", "deployment", "qm-grafana", "-n", args.qm_namespace],
@@ -261,7 +297,7 @@ def enable_grafana_addon(args: argparse.Namespace) -> None:
     print(f"  Пароль:   {pwd}", flush=True)
     print(
         "  Подсказка: DNS на этот хост; при ingress.tls.enabled=false задайте "
-        "monitoring.grafana.rootUrlScheme=http в values.",
+        "monitoring.grafana.rootUrlScheme=http в values. Изменения — через Argo CD (Application qm).",
         flush=True,
     )
     print("", flush=True)
@@ -270,7 +306,7 @@ def enable_grafana_addon(args: argparse.Namespace) -> None:
 def enable_phpmyadmin_addon(args: argparse.Namespace) -> None:
     ensure_kubectl()
     k = kubectl_cmd(args)
-    if not _qm_set_helm_values(
+    if not _qm_set_helm_values_via_argo(
         args,
         {
             "phpmyadmin.enabled": "true",
@@ -458,12 +494,28 @@ def uninstall_argocd(args: argparse.Namespace) -> None:
 
 
 def uninstall_minio(args: argparse.Namespace) -> None:
-    """Helm uninstall minio и удаление namespace MinIO."""
+    """Удаление MinIO: сначала Argo CD Application minio, иначе legacy helm uninstall."""
     ensure_kubectl()
-    ensure_helm()
     k = kubectl_cmd(args)
-    h = helm_cmd(args)
     ns = args.minio_namespace
+    r_app = subprocess.run(
+        [*k, "get", "application", "minio", "-n", "argocd", "-o", "name"],
+        capture_output=True,
+    )
+    if r_app.returncode == 0:
+        print("Argo CD: удаление Application minio (cascade foreground) …", flush=True)
+        subprocess.run(
+            [*k, "delete", "application", "minio", "-n", "argocd", "--cascade=foreground"],
+            check=False,
+        )
+        print("MinIO: очистка через Argo CD завершена.", flush=True)
+        return
+    ensure_helm()
+    h = helm_cmd(args)
+    r_helm = subprocess.run([*h, "status", "minio", "-n", ns], capture_output=True)
+    if r_helm.returncode == 0:
+        print(f"Helm (legacy): uninstall minio в namespace {ns} …", flush=True)
+        subprocess.run([*h, "uninstall", "minio", "-n", ns], check=False)
     ns_check = subprocess.run(
         [*k, "get", "namespace", ns, "-o", "name"],
         capture_output=True,
@@ -471,8 +523,6 @@ def uninstall_minio(args: argparse.Namespace) -> None:
     if ns_check.returncode != 0:
         print(f"MinIO: namespace {ns} не найден — нечего удалять.", flush=True)
         return
-    print(f"Helm: uninstall minio (namespace {ns}) …", flush=True)
-    subprocess.run([*h, "uninstall", "minio", "-n", ns], check=False)
     print(f"kubectl: удаление namespace {ns} …", flush=True)
     subprocess.run(
         [*k, "delete", "namespace", ns, "--wait=true", "--timeout=10m"],
@@ -493,63 +543,42 @@ def _print_minio_access(args: argparse.Namespace, root_password: str) -> None:
     else:
         print(
             f"  Сервис в кластере: minio.{args.minio_namespace}.svc.cluster.local (без Ingress). "
-            f"Порты: helm status minio -n {args.minio_namespace}",
+            f"Порты: kubectl -n {args.minio_namespace} get svc",
             flush=True,
         )
     print("", flush=True)
 
 
 def install_minio(args: argparse.Namespace) -> None:
-    h = helm_cmd(args)
-    run([*h, "repo", "add", "bitnami", "https://charts.bitnami.com/bitnami"], check=False)
-    run([*h, "repo", "update"])
-    root_pw = (args.minio_root_password or "").strip() or _random_password()
-    extra: list[str] = [
-        "--set",
-        f"auth.rootUser={args.minio_root_user}",
-        "--set",
-        f"auth.rootPassword={root_pw}",
-    ]
-    if args.minio_host.strip():
-        extra.extend(
-            [
-                "--set",
-                "ingress.enabled=true",
-                "--set",
-                f"ingress.hostname={args.minio_host.strip()}",
-                "--set",
-                f"ingress.ingressClassName={args.minio_ingress_class}",
-            ]
+    """MinIO только через Argo CD Application minio (не helm с хоста)."""
+    ensure_kubectl()
+    k = kubectl_cmd(args)
+    if subprocess.run([*k, "get", "namespace", "argocd", "-o", "name"], capture_output=True).returncode != 0:
+        print(
+            "ОШИБКА: namespace argocd не найден. Установите Argo CD: "
+            "python3 scripts/k8s-manage.py addons --argocd",
+            file=sys.stderr,
         )
-    print(f"Helm: установка MinIO (namespace {args.minio_namespace}) …", flush=True)
-    run(
-        [
-            *h,
-            "upgrade",
-            "--install",
-            "minio",
-            "bitnami/minio",
-            "-n",
-            args.minio_namespace,
-            "--create-namespace",
-            "--wait",
-            "--timeout",
-            "15m",
-            *extra,
-        ]
-    )
+        sys.exit(1)
+    root_pw = (args.minio_root_password or "").strip() or _random_password()
+    print("Argo CD: регистрация Application minio (bitnami/minio) …", flush=True)
+    apply_minio_argo_application(args, root_pw)
     _print_minio_access(args, root_pw)
 
 
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(
         description=(
-            "Helm: Argo CD, MinIO (S3), опционально Grafana и phpMyAdmin (чарт qm-project). "
-            "Нужен хотя бы один флаг установки или удаления."
+            "Argo CD: установка Argo, Application minio (S3), параметры Application qm для Grafana/phpMyAdmin. "
+            "Прямой helm upgrade приложений с этого хоста не выполняется — только kubectl/helm для самого Argo CD."
         )
     )
     p.add_argument("--argocd", action="store_true", help="Argo CD (chart argo/argo-cd, ns argocd)")
-    p.add_argument("--s3", action="store_true", help="MinIO S3 (bitnami/minio); пароль сгенерируется если не задан")
+    p.add_argument(
+        "--s3",
+        action="store_true",
+        help="MinIO S3: Argo CD Application minio (bitnami/minio); нужен namespace argocd; пароль — случайный если не задан",
+    )
     p.add_argument(
         "--grafana",
         action="store_true",
@@ -629,6 +658,12 @@ def main(argv: list[str] | None = None) -> None:
         metavar="NAME",
         help="ingress.ingressClassName для MinIO (K3s: traefik)",
     )
+    p.add_argument(
+        "--minio-chart-version",
+        default="14.10.5",
+        metavar="VER",
+        help="targetRevision чарта bitnami/minio для Argo CD (см. index репозитория Bitnami)",
+    )
     p.add_argument("--dry-run", action="store_true", help="Только описание шагов")
     p.add_argument(
         "--deploy-version",
@@ -667,8 +702,8 @@ def main(argv: list[str] | None = None) -> None:
             )
         if args.uninstall_s3:
             print(
-                f"DRY-RUN: helm uninstall minio -n {args.minio_namespace}; "
-                f"kubectl delete namespace {args.minio_namespace}"
+                "DRY-RUN: kubectl delete application minio -n argocd --cascade=foreground "
+                f"(или legacy: helm uninstall minio -n {args.minio_namespace})"
             )
         if args.argocd:
             vf = _QMDEPLOY_ROOT / "helm" / "argocd" / "values-k3s.yaml"
@@ -685,26 +720,21 @@ def main(argv: list[str] | None = None) -> None:
                 )
         if args.s3:
             print(
-                f"DRY-RUN: helm upgrade --install minio bitnami/minio -n {args.minio_namespace} "
-                f"--create-namespace (+ auth, ingress если задан --minio-host)"
+                f"DRY-RUN: kubectl apply Application minio в argocd "
+                f"(bitnami/minio, chart {args.minio_chart_version}, ns {args.minio_namespace})"
             )
         if args.grafana:
             print(
                 "DRY-RUN: patch Secret qm-app GRAFANA_ADMIN_PASSWORD; "
-                "Application qm helm: monitoring.enabled=true или helm upgrade qm --reuse-values"
+                "kubectl replace Application qm (helm parameters: monitoring.enabled=true)"
             )
         if args.phpmyadmin:
             print(
-                "DRY-RUN: Application qm: phpmyadmin.enabled=true, "
-                "phpmyadmin.preloadAppCredentials=true (или helm upgrade)"
+                "DRY-RUN: kubectl replace Application qm: phpmyadmin.enabled=true, "
+                "phpmyadmin.preloadAppCredentials=true"
             )
         sys.exit(0)
-    need_helm = (
-        want_install
-        or args.uninstall_argocd
-        or args.uninstall_s3
-    )
-    if need_helm:
+    if args.argocd or args.uninstall_argocd:
         ensure_helm()
     if args.uninstall_argocd:
         uninstall_argocd(args)
