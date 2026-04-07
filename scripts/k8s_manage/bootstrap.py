@@ -95,7 +95,14 @@ def _maybe_greenfield_secrets(args: argparse.Namespace) -> None:
 
     from k8s_manage.secrets import main as secrets_main
 
-    forward: list[str] = ["-n", args.qm_namespace]
+    forward: list[str] = [
+        "-n",
+        args.qm_namespace,
+        "--mysql-user",
+        args.mysql_user,
+        "--mysql-database",
+        args.mysql_database,
+    ]
     if args.cloud_license_key_file is not None:
         forward.extend(["--cloud-license-key-file", str(args.cloud_license_key_file)])
     else:
@@ -259,6 +266,16 @@ def main(argv: list[str] | None = None) -> None:
         default=None,
         metavar="PATH",
         help="Файл с лицензией (предпочтительно на чистом сервере)",
+    )
+    p.add_argument(
+        "--mysql-user",
+        default="qmuser",
+        help="MySQL user для qm-mysql/qm-app (как k8s-manage secrets)",
+    )
+    p.add_argument(
+        "--mysql-database",
+        default="qmserver",
+        help="Имя основной БД QMServer в секретах (как k8s-manage secrets)",
     )
     p.add_argument(
         "--cloud-license-ips",

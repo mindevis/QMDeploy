@@ -1,3 +1,10 @@
+# [1.9.14](https://github.com/mindevis/QMDeploy/compare/v1.9.13...v1.9.14) (2026-04-07)
+
+
+### Features
+
+* **scripts:** bootstrap accepts **`--mysql-user`** and **`--mysql-database`** (forwarded to greenfield **secrets**).
+
 # [1.9.13](https://github.com/mindevis/QMDeploy/compare/v1.9.12...v1.9.13) (2026-04-07)
 
 
