@@ -1,3 +1,10 @@
+# [1.9.17](https://github.com/mindevis/QMDeploy/compare/v1.9.16...v1.9.17) (2026-04-07)
+
+
+### Bug Fixes
+
+* **helm (mysql):** в **`mysql.cnf`** задано **`mysqlx=0`** — отключён MySQL X Plugin, чтобы не падать с **MY-011300** / **MY-010259** (конфликт **`mysqlx.sock`** в datadir в контейнере Percona 8.0). Классический доступ по **:3306** без изменений.
+
 # [1.9.16](https://github.com/mindevis/QMDeploy/compare/v1.9.15...v1.9.16) (2026-04-07)
 
 
