@@ -85,6 +85,7 @@ spec:
           {{- $img := include "qm.image" (list . "qmnetwork") }}
           image: {{ $img | quote }}
           imagePullPolicy: {{ include "qm.imagePullPolicy" $img }}
+          command: ["/qmnetwork", "--server"]
           envFrom:
             - configMapRef:
                 name: qm-qmnetwork-config
