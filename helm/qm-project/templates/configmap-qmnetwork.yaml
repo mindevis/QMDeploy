@@ -52,4 +52,7 @@ data:
   {{- if $tlsName }}
   QMNETWORK_SMTP_TLS_SERVER_NAME: {{ $tlsName | quote }}
   {{- end }}
+  {{- if and $relay.enabled (eq $smtpHost "smtp-relay") $relay.qmnetworkTlsSkipVerify }}
+  QMNETWORK_SMTP_TLS_INSECURE: "true"
+  {{- end }}
   QMNETWORK_EMAIL_VERIFY_TTL: {{ .Values.qmserver.config.qmnetworkEmailVerifyTTL | default "48h" | quote }}
