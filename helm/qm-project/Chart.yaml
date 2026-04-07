@@ -1,6 +1,6 @@
 apiVersion: v2
 name: qm-project
-description: QMServer, QMAdmin, QMWeb, QMDocs, QMNetwork, MySQL, optional monitoring (Grafana/Prometheus), Ingress for K3s
+description: QMServer, QMAdmin, QMWeb, QMDocs, MySQL, optional QMSecret/monitoring, Ingress for K3s
 type: application
-version: 1.9.36
-appVersion: "1.9.36"
+version: 1.9.37
+appVersion: "1.9.37"

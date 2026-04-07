@@ -11,7 +11,6 @@ images:
   qmadmin: ""
   qmweb: ""
   qmdocs: ""
-  qmnetwork: ""
   qmsecret: ""
 
 # Заполняется CI (bump): меняется при новой сборке, чтобы Argo синкнул rollout без пина образа в spec.
@@ -20,7 +19,6 @@ imageRevisions:
   qmadmin: "bd3552d"
   qmweb: "af2a7ff"
   qmdocs: "69a0d0b"
-  qmnetwork: "65132ba"
   qmsecret: "d3a43e1"
 
 # kubectl create secret docker-registry ghcr-credentials -n qm --docker-server=ghcr.io --docker-username=... --docker-password=...
@@ -33,7 +31,6 @@ ingress:
     admin: admin.qx-dev.ru
     web: web.qx-dev.ru
     docs: qm.qx-dev.ru
-    auth: auth.qx-dev.ru
     key: key.qx-dev.ru
     grafana: monit.qx-dev.ru
     phpmyadmin: pma.qx-dev.ru

@@ -78,13 +78,12 @@ def _mask_secret_key(key: str, val: str) -> str:
         "MYSQL_PASSWORD",
         "JWT_SECRET",
         "QMBILLING_ADMIN_SECRET",
-        "QMNETWORK_INTERNAL_SECRET",
         "QMSERVER_CLOUD_LICENSE_KEY",
         "QMSECRET_MASTER_KEY",
         "QMSECRET_SERVICE_TOKEN",
     ):
         return f"<{len(val)} chars>"
-    if key.endswith("_DSN") or key == "DB_DSN" or key == "QMNETWORK_MYSQL_DSN":
+    if key.endswith("_DSN") or key == "DB_DSN":
         return _redact_dsn(val)
     return val
 
@@ -179,18 +178,12 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument(
         "--mysql-user",
         default="qmuser",
-        help="application MySQL user (must match GRANT in mysql-config 100-qmnetwork.sql)",
+        help="application MySQL user (must match privileges for MYSQL_DATABASE)",
     )
     p.add_argument(
         "--mysql-database",
         default="qmserver",
         help="MYSQL_DATABASE / основная БД QMServer (должна совпадать с init MySQL)",
-    )
-    p.add_argument(
-        "--qmnetwork-database",
-        default="qmnetwork",
-        metavar="NAME",
-        help="Имя БД в QMNETWORK_MYSQL_DSN (по умолчанию qmnetwork; совпадайте с init / GRANT)",
     )
     p.add_argument(
         "--force",
@@ -280,11 +273,8 @@ def _run(args: argparse.Namespace, lic: str) -> None:
 
     dsn_base = f"{user}:{app_pw}@tcp(mysql:3306)/"
     db_dsn = f"{dsn_base}{db}?parseTime=true"
-    qmn_db = args.qmnetwork_database
-    qmn_dsn = f"{dsn_base}{qmn_db}?parseTime=true"
     jwt = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
     billing = secrets.token_hex(32)
-    qmi = secrets.token_hex(24)
     qmsecret_master = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
     qmsecret_token = secrets.token_urlsafe(32)
 
@@ -296,10 +286,8 @@ def _run(args: argparse.Namespace, lic: str) -> None:
     ]
     app_pairs: list[tuple[str, str]] = [
         ("DB_DSN", db_dsn),
-        ("QMNETWORK_MYSQL_DSN", qmn_dsn),
         ("JWT_SECRET", jwt),
         ("QMBILLING_ADMIN_SECRET", billing),
-        ("QMNETWORK_INTERNAL_SECRET", qmi),
         ("QMSERVER_CLOUD_LICENSE_KEY", lic),
         ("QMSECRET_MASTER_KEY", qmsecret_master),
         ("QMSECRET_SERVICE_TOKEN", qmsecret_token),

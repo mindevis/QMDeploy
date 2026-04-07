@@ -18,7 +18,6 @@ images:
   qmadmin: ""
   qmweb: ""
   qmdocs: ""
-  qmnetwork: ""
   qmsecret: ""
 
 # Тег/ревизия образа из CI (short SHA и т.д.): bump-qmdeploy выставляет imageRevisions.<сервис>,
@@ -28,7 +27,6 @@ imageRevisions:
   qmadmin: ""
   qmweb: ""
   qmdocs: ""
-  qmnetwork: ""
   qmsecret: ""
 
 # Uncomment after creating the secret (same as flat manifests):
@@ -48,8 +46,6 @@ ingress:
     admin: admin.example.com
     web: web.example.com
     docs: docs.example.com
-    # QMNetwork Ingress host (default qx-dev; override for custom domains)
-    auth: auth.qx-dev.ru
     # QMSecret (Cloud only; включите qmsecret.enabled). Для продакшена ограничьте доступ (firewall / BasicAuth / IP allowlist).
     key: key.qx-dev.ru
     # Grafana (включите monitoring.enabled). Пароль админа: Secret qm-app → GRAFANA_ADMIN_PASSWORD или monitoring.grafana.adminPasswordPlain в values.
@@ -60,8 +56,6 @@ ingress:
 mysql:
   image: percona/percona-server:8.0
   # z-qm.cnf из ConfigMap mysql-config: для Percona путь drop-in — /etc/my.cnf.d/ (не /etc/mysql/conf.d).
-  # Имя БД QMNetwork в init (должно совпадать с QMNETWORK_MYSQL_DSN / --qmnetwork-database при greenfield)
-  qmnetworkDatabase: qmnetwork
   storage: 20Gi
   resources:
     requests:
@@ -96,24 +90,8 @@ qmserver:
   hostNetwork: true
   config:
     appName: "QMServer Cloud"
-    qmnetworkIssuer: "QMNetwork"
     port: "8080"
     ginMode: release
-    # OAuth2 PKCE: список redirect_uri через запятую. Пусто — собрать из ingress.hosts (web/login, admin/, docs/login/callback).
-    qmnetworkOAuthRedirectUris: ""
-    # Публичный URL API для ссылок подтверждения email QMNetwork; пусто — http(s)://ingress.hosts.api
-    qmnetworkVerifyEmailPublicUrl: ""
-    # Пусто + smtpRelay.enabled → QMNETWORK_*: хост smtp-relay, user/from = smtpRelay.relayUserEmail, пароль из Secret smtp-relay-auth.
-    # Иначе задайте вручную (внешний SMTP) и положите QMNETWORK_SMTP_PASSWORD в Secret qm-app.
-    qmnetworkSmtpHost: ""
-    # Имя в TLS-сертификате SMTP (SNI), если host — smtp-relay, а cert на smtp.example.com. Пусто + smtpRelay → smtpRelay.hostname.
-    qmnetworkSmtpTlsServerName: ""
-    qmnetworkSmtpPort: "587"
-    qmnetworkSmtpUser: ""
-    qmnetworkSmtpFrom: ""
-    qmnetworkEmailVerifyTTL: "48h"
-    # HTTP base для прокси QMServer → QMNetwork (internal API SMTP). Пусто — http://qmnetwork:<qmnetwork.port>
-    qmnetworkInternalUrl: ""
   resources:
     requests:
       cpu: 100m
@@ -151,14 +129,12 @@ qmdocs:
       cpu: 500m
       memory: 512Mi
 
-# Опциональный Postfix в кластере (отправка с вашего домена). При smtpRelay.enabled чарт создаёт Secret smtp-relay-auth (SMTP_RELAY_USERS и QMNETWORK_SMTP_PASSWORD).
+# Опциональный Postfix в кластере (отправка с вашего домена). При smtpRelay.enabled чарт создаёт Secret smtp-relay-auth.
 # QMSecret — зашифрованное хранилище секретов (только Cloud; не для Free/Pro). Требует ключи в Secret qm-app: QMSECRET_MASTER_KEY (base64, 32 байта), QMSECRET_SERVICE_TOKEN.
 qmsecret:
   enabled: false
-  # HTTP-порт пода/Service (по умолчанию не 8080 — у QMServer и QMNetwork в кластере уже :8080). LISTEN и QMSECRET_BASE_URL выставляются чартом.
+  # HTTP-порт пода/Service. LISTEN и QMSECRET_BASE_URL выставляются чартом.
   port: 9088
-  # Путь к значению в QMSecret для общего секрета QMServer ↔ QMNetwork (если не задан QMNETWORK_INTERNAL_SECRET в Secret).
-  pathQmnetworkInternal: qmserver/qmnetwork/internal_secret
   persistence:
     create: true
     storage: 1Gi
@@ -232,8 +208,8 @@ smtpRelay:
   relayUserEmail: noreply@qx-dev.ru
   # Если не пусто — полная строка user:password (перекрывает автогенерацию). Иначе пароль = первые 32 hex-символа sha256(release|namespace|email).
   smtpRelayUsersPlain: ""
-  # У boky/postfix на 587 — часто самоподписанный TLS; для QMNetwork → smtp-relay включить пропуск проверки цепочки (трафик только внутри кластера). Внешний SMTP — false.
-  qmnetworkTlsSkipVerify: true
+  # У boky/postfix на 587 — часто самоподписанный TLS; для клиента внутри кластера к smtp-relay — true. Внешний SMTP — false.
+  smtpTlsSkipVerify: true
   resources:
     requests:
       cpu: 50m
@@ -247,32 +223,7 @@ smtpRelay:
   # - PTR (обратная зона) для того же IP как smtp.qx-dev.ru — у хостера/VPS.
   # - DKIM: образ boky/postfix не настраивает подпись из коробки; при необходимости отдельный relay с DKIM или доп. контейнер.
 
-# Опциональный Redis для QMNetwork (одноразовые post-verify токены между репликами). При redis.enabled=true и пустом qmnetwork.redisAddr — адрес qm-redis:6379.
+# Опциональный Redis в кластере (Service/Deployment qm-redis). По умолчанию выключен.
 redis:
   enabled: false
   image: redis:7-alpine
-
-qmnetwork:
-  # HTTP-порт пода/Service (не 8080 — QMServer слушает :8080). LISTEN и QMNETWORK_INTERNAL_URL в ConfigMap QMServer согласованы с этим значением.
-  port: 9087
-  # Redis host:port для post-verify / HA (переменная QMNETWORK_REDIS_ADDR). Пусто и redis.enabled=false — in-memory в поде (не подходит для replicas>1).
-  redisAddr: ""
-  # Опционально: пароль Redis (или redisPasswordSecret).
-  redisPassword: ""
-  redisPasswordSecret:
-    name: ""
-    key: password
-  redisDb: 0
-  # POST к QMServer после подтверждения email (provision строки в users для админки). Пусто — http://qmserver:<qmserver.config.port>.
-  qmserverInternalApiUrl: ""
-  # DSN MySQL на БД qmnetwork (тот же хост/пользователь, что QMServer). Пусто — из Secret qm-app, ключ QMNETWORK_MYSQL_DSN.
-  mysqlDsn: ""
-  # Публичный origin портала (QMNETWORK_PUBLIC_ORIGIN). Пусто — https?://ingress.hosts.auth
-  publicOrigin: ""
-  resources:
-    requests:
-      cpu: 25m
-      memory: 32Mi
-    limits:
-      cpu: 500m
-      memory: 256Mi
