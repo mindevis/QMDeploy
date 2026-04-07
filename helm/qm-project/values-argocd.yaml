@@ -36,6 +36,11 @@ ingress:
     auth: auth.qx-dev.ru
     key: key.qx-dev.ru
     grafana: monit.qx-dev.ru
+    phpmyadmin: pma.qx-dev.ru
+
+# phpMyAdmin к MySQL (выключен по умолчанию). Включите: phpmyadmin.enabled: true и Sync.
+phpmyadmin:
+  enabled: false
 
 # Включает Deployment/Service/Ingress для QMSecret и Postfix relay (остальные поля — из values.yaml).
 # Обязательно создайте Secret qm-app: QMSECRET_MASTER_KEY, QMSECRET_SERVICE_TOKEN.

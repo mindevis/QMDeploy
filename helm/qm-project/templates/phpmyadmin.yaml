@@ -1,0 +1,77 @@
+{{- if .Values.phpmyadmin.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: phpmyadmin
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: phpmyadmin
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: qm-project
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+  selector:
+    app: phpmyadmin
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phpmyadmin
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/name: phpmyadmin
+    app.kubernetes.io/part-of: qm-project
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phpmyadmin
+  template:
+    metadata:
+      labels:
+        app: phpmyadmin
+        {{- include "qm.labels" . | nindent 8 }}
+        app.kubernetes.io/part-of: qm-project
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: phpmyadmin
+          image: {{ .Values.phpmyadmin.image | quote }}
+          imagePullPolicy: {{ .Values.phpmyadmin.imagePullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: PMA_HOST
+              value: {{ .Values.phpmyadmin.mysqlHost | default "mysql" | quote }}
+            - name: PMA_PORT
+              value: {{ .Values.phpmyadmin.mysqlPort | default "3306" | quote }}
+            - name: PMA_VERBOSE
+              value: "0"
+            {{- if and .Values.ingress.hosts.phpmyadmin (ne .Values.ingress.hosts.phpmyadmin "") }}
+            - name: PMA_ABSOLUTE_URI
+              value: {{ printf "%s://%s/" (.Values.phpmyadmin.publicUrlScheme | default "https") .Values.ingress.hosts.phpmyadmin | quote }}
+            {{- end }}
+            {{- if .Values.phpmyadmin.preloadAppCredentials }}
+            - name: PMA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: qm-mysql
+                  key: MYSQL_USER
+            - name: PMA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: qm-mysql
+                  key: MYSQL_PASSWORD
+            {{- end }}
+          resources:
+            {{- toYaml .Values.phpmyadmin.resources | nindent 12 }}
+{{- end }}

@@ -87,6 +87,18 @@ spec:
                 port:
                   number: 3000
     {{- end }}
+    {{- if and .Values.phpmyadmin.enabled .Values.ingress.hosts.phpmyadmin }}
+    - host: {{ .Values.ingress.hosts.phpmyadmin | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: phpmyadmin
+                port:
+                  number: 80
+    {{- end }}
   {{- if .Values.ingress.tls.enabled }}
   tls:
     - hosts:
@@ -100,6 +112,9 @@ spec:
         {{- end }}
         {{- if .Values.monitoring.enabled }}
         - {{ .Values.ingress.hosts.grafana | default "monit.qx-dev.ru" | quote }}
+        {{- end }}
+        {{- if and .Values.phpmyadmin.enabled .Values.ingress.hosts.phpmyadmin }}
+        - {{ .Values.ingress.hosts.phpmyadmin | quote }}
         {{- end }}
       secretName: {{ .Values.ingress.tls.secretName | quote }}
   {{- end }}

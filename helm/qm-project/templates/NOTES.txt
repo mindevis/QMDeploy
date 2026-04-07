@@ -4,6 +4,9 @@
 {{- if .Values.monitoring.enabled }}
    При monitoring.enabled: в qm-app добавьте GRAFANA_ADMIN_PASSWORD (или задайте monitoring.grafana.adminPasswordPlain в values только для отладки).
 {{- end }}
+{{- if .Values.phpmyadmin.enabled }}
+   phpMyAdmin: при необходимости логин в MySQL — пользователь/пароль из Secret qm-mysql (или preloadAppCredentials в values).
+{{- end }}
 {{- if .Values.smtpRelay.enabled }}
    При smtpRelay.enabled: Secret smtp-relay-auth (ключ SMTP_RELAY_USERS) создаётся чартом. Строка для QMAdmin/QMNetwork:
    kubectl -n {{ .Release.Namespace }} get secret smtp-relay-auth -o jsonpath='{.data.SMTP_RELAY_USERS}' | base64 -d; echo

@@ -1,3 +1,10 @@
+# [1.9.20](https://github.com/mindevis/QMDeploy/compare/v1.9.19...v1.9.20) (2026-04-07)
+
+
+### Features
+
+* **helm:** опциональный **phpMyAdmin** (**`phpmyadmin.enabled`**, по умолчанию **false**) — Service **`mysql`**, Ingress при **`ingress.hosts.phpmyadmin`**; **`preloadAppCredentials`** для пользователя из **qm-mysql**.
+
 # [1.9.19](https://github.com/mindevis/QMDeploy/compare/v1.9.18...v1.9.19) (2026-04-07)
 
 

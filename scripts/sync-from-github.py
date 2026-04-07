@@ -29,6 +29,7 @@ HELM_BUNDLE_FILES = [
     "qm-project/templates/ingress.yaml",
     "qm-project/templates/mysql.yaml",
     "qm-project/templates/namespace.yaml",
+    "qm-project/templates/phpmyadmin.yaml",
     "qm-project/templates/NOTES.txt",
     "qm-project/templates/pvc-qmserver.yaml",
     "qm-project/templates/pvc-qmweb.yaml",
