@@ -1,3 +1,14 @@
+# [1.9.12](https://github.com/mindevis/QMDeploy/compare/v1.9.11...v1.9.12) (2026-04-07)
+
+
+### Features
+
+* **scripts:** bootstrap creates **`ghcr-credentials`** from **`/root/.ghcr-credentials`**: one line = PAT (Docker user **`mindevis`** by default / **`GHCR_USERNAME`** / **`--ghcr-username`**), two lines = username + PAT; flags **`--skip-ghcr-credentials`**, **`--recreate-ghcr-credentials`**, **`--ghcr-credentials-file`**.
+
+### Documentation
+
+* **readme:** greenfield file layout for GHCR PAT.
+
 # [1.9.11](https://github.com/mindevis/QMDeploy/compare/v1.9.10...v1.9.11) (2026-04-07)
 
 
