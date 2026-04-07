@@ -1,3 +1,14 @@
+# [1.9.8](https://github.com/mindevis/QMDeploy/compare/v1.9.7...v1.9.8) (2026-04-07)
+
+
+### Bug Fixes
+
+* **scripts:** `create-greenfield-secrets.py` — use **`k3s kubectl`** when **`kubectl` is missing; default **`KUBECONFIG`** to **`/etc/rancher/k3s/k3s.yaml`**; clear error if cluster not installed (run **`install-k3s-helm.py --skip-argocd`** first).
+
+### Documentation
+
+* **readme:** greenfield order — **--skip-argocd** before secrets on empty server.
+
 # [1.9.7](https://github.com/mindevis/QMDeploy/compare/v1.9.6...v1.9.7) (2026-04-07)
 
 

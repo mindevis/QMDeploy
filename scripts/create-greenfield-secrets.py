@@ -7,8 +7,11 @@ qm-app включает ключи **QMServer Cloud** (лицензия) и **QM
 
 На сервере K3s выполняйте от root (тот же kubeconfig, что и у install-k3s-helm.py).
 
-Запускайте до bootstrap (install-k3s-helm.py / Argo sync) на новом кластере или после
-kubectl delete secret … при смене паролей. Повтор без --force: ошибка «уже существует».
+Нужен доступ к API Kubernetes: **`kubectl`** в PATH либо **`k3s`** (`k3s kubectl`). На пустом сервере
+сначала: **`python3 scripts/install-k3s-helm.py --skip-argocd`**, затем этот скрипт.
+
+Запускайте до полного bootstrap (второй запуск **install-k3s-helm.py** / Argo sync) или после
+**kubectl delete secret** … Повтор без **--force**: ошибка «уже существует».
 
 Ключ лицензии: **`--cloud-license-key`** или **`--cloud-license-key-file`** (предпочтительно —
 ключ не попадает в список аргументов процесса в `ps`). Пароль в командной строке после
@@ -28,6 +31,7 @@ import base64
 import os
 import re
 import secrets
+import shutil
 import subprocess
 import sys
 import time
@@ -35,6 +39,32 @@ from pathlib import Path
 
 SCRIPT_MARKER = "create-greenfield-secrets.py"
 CLI_KEY_FLAG = "--cloud-license-key"
+
+
+def _ensure_kubeconfig() -> None:
+    if os.environ.get("KUBECONFIG"):
+        return
+    kc = Path("/etc/rancher/k3s/k3s.yaml")
+    if kc.is_file():
+        os.environ["KUBECONFIG"] = str(kc)
+
+
+def _kubectl_argv0() -> list[str]:
+    """['kubectl'] или ['k3s', 'kubectl'], если K3s установлен без симлинка kubectl."""
+    if shutil.which("kubectl"):
+        return ["kubectl"]
+    if shutil.which("k3s"):
+        _ensure_kubeconfig()
+        return ["k3s", "kubectl"]
+    print(
+        "ERROR: neither kubectl nor k3s in PATH.\n"
+        "On a clean server run first (as root):\n"
+        "  python3 scripts/install-k3s-helm.py --skip-argocd\n"
+        "Then run this script again, create ghcr-credentials, and:\n"
+        "  python3 scripts/install-k3s-helm.py",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 
 
 def _redact_dsn(dsn: str) -> str:
@@ -296,9 +326,10 @@ def _run(args: argparse.Namespace, lic: str) -> None:
         )
         return
 
-    k = ["kubectl", "-n", ns]
+    kbase = _kubectl_argv0()
+    k = [*kbase, "-n", ns]
 
-    r = subprocess.run(["kubectl", "create", "namespace", ns], capture_output=True, text=True)
+    r = subprocess.run([*kbase, "create", "namespace", ns], capture_output=True, text=True)
     if r.returncode != 0 and "AlreadyExists" not in (r.stderr or ""):
         print(r.stderr or r.stdout, file=sys.stderr)
         sys.exit(1)
