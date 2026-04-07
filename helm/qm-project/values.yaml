@@ -232,6 +232,8 @@ smtpRelay:
   relayUserEmail: noreply@qx-dev.ru
   # Если не пусто — полная строка user:password (перекрывает автогенерацию). Иначе пароль = первые 32 hex-символа sha256(release|namespace|email).
   smtpRelayUsersPlain: ""
+  # У boky/postfix на 587 — часто самоподписанный TLS; для QMNetwork → smtp-relay включить пропуск проверки цепочки (трафик только внутри кластера). Внешний SMTP — false.
+  qmnetworkTlsSkipVerify: true
   resources:
     requests:
       cpu: 50m
