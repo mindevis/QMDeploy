@@ -18,7 +18,7 @@ images:
 imageRevisions:
   qmserver: "1a66821"
   qmadmin: "bd3552d"
-  qmweb: "1.4.4"
+  qmweb: "af2a7ff"
   qmdocs: "69a0d0b"
   qmnetwork: "65132ba"
   qmsecret: "d3a43e1"
