@@ -55,7 +55,7 @@ ingress:
     # Grafana (включите monitoring.enabled). Пароль админа: Secret qm-app → GRAFANA_ADMIN_PASSWORD или monitoring.grafana.adminPasswordPlain в values.
     grafana: monit.qx-dev.ru
     # phpMyAdmin (включите phpmyadmin.enabled). В продакшене ограничьте доступ (firewall / VPN / BasicAuth).
-    phpmyadmin: pma.example.com
+    phpmyadmin: pma.qx-dev.ru
 
 mysql:
   image: percona/percona-server:8.0
