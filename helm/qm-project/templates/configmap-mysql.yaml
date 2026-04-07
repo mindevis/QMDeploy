@@ -14,6 +14,9 @@ data:
     default-character-set = utf8mb4
 
     [mysqld]
+    # Только классический протокол :3306; X Plugin (:33060, mysqlx.sock в datadir) отключён —
+    # иначе при старте в pod возможен конфликт сокетов (MY-011300 / MY-010259, «another process … mysqlx.sock»).
+    mysqlx = 0
     character-set-server = utf8mb4
     collation-server = utf8mb4_unicode_ci
     init_connect = 'SET NAMES utf8mb4'
