@@ -17,6 +17,8 @@ QMDeploy — единая точка входа для K3s / Helm / Argo CD / с
   python3 scripts/k8s-manage.py bootstrap --help
   python3 scripts/k8s-manage.py secrets --cloud-license-key-file /root/.lic --dry-run
   python3 scripts/k8s-manage.py addons --argocd --s3
+  python3 scripts/k8s-manage.py addons --grafana
+  python3 scripts/k8s-manage.py addons --phpmyadmin
   python3 scripts/k8s-manage.py reset-k3s --yes
   python3 scripts/k8s-manage.py --version
 """

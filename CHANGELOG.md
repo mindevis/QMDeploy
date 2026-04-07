@@ -1,3 +1,10 @@
+# [1.9.34](https://github.com/mindevis/QMDeploy/compare/v1.9.33...v1.9.34) (2026-04-07)
+
+
+### Added
+
+* **k8s-manage.py addons:** **`--grafana`** (включает **`monitoring.enabled`**, генерирует **`GRAFANA_ADMIN_PASSWORD`** в **`qm-app`**, печатает URL/логин/пароль), **`--phpmyadmin`** (**`phpmyadmin.enabled`** + **`preloadAppCredentials`**, печатает URL и учётку MySQL из **`qm-mysql`**); **`--s3`** — автопароль root при отсутствии **`--minio-root-password`**, Ingress по умолчанию **`s3.qx-dev.ru`**, флаги **`--minio-internal`**, **`--minio-ingress-class`**.
+
 # [1.9.33](https://github.com/mindevis/QMDeploy/compare/v1.9.32...v1.9.33) (2026-04-07)
 
 

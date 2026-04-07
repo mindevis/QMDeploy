@@ -108,7 +108,11 @@ docker compose -f docker-compose.monitoring.yml --env-file .env.monitoring up -d
 
 ```bash
 python3 scripts/k8s-manage.py addons --argocd --s3
+python3 scripts/k8s-manage.py addons --grafana
+python3 scripts/k8s-manage.py addons --phpmyadmin
 ```
+
+**Grafana / phpMyAdmin / MinIO одной командой:** скрипт задаёт параметры Helm (через Argo Application **qm** или `helm upgrade qm --reuse-values`), для Grafana генерирует **`GRAFANA_ADMIN_PASSWORD`** в Secret **`qm-app`**, для MinIO при необходимости включает Ingress на **`s3.qx-dev.ru`** (или **`--minio-internal`** без Ingress). Домены по умолчанию совпадают с **`values-argocd.yaml`**; переопределение: **`--grafana-host`**, **`--phpmyadmin-host`**, **`--minio-host`**. Учётные данные печатаются в консоль после выполнения.
 
 Полное удаление (все Application в `argocd`, `helm uninstall`, удаление namespace):
 
