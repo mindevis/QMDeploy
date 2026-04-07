@@ -104,6 +104,7 @@ def maybe_apply_ghcr_from_file(
     default_username: str,
     skip: bool,
     force: bool,
+    dry_run: bool = False,
 ) -> None:
     if skip:
         return
@@ -124,5 +125,13 @@ def maybe_apply_ghcr_from_file(
             )
         return
     user, token = parsed
+    if dry_run:
+        print(
+            f"DRY-RUN: would create Secret docker-registry ghcr-credentials -n {namespace!r} "
+            f"--docker-server={GHCR_DOCKER_SERVER} --docker-username={user!r} "
+            f"--docker-password=<{len(token)} chars>",
+            flush=True,
+        )
+        return
     print(f"GHCR pull secret: server={GHCR_DOCKER_SERVER}, user={user!r} …", flush=True)
     apply_ghcr_pull_secret(namespace=namespace, username=user, token=token, force=force)

@@ -1,3 +1,10 @@
+# [1.9.13](https://github.com/mindevis/QMDeploy/compare/v1.9.12...v1.9.13) (2026-04-07)
+
+
+### Bug Fixes
+
+* **scripts:** bootstrap **`--dry-run`** — предпросмотр без установки K3s/Helm и без изменений кластера; пробрасывается в secrets, GHCR и Argo addons; **`bootstrap --direct-helm`** добавляет **`helm --dry-run`**.
+
 # [1.9.12](https://github.com/mindevis/QMDeploy/compare/v1.9.11...v1.9.12) (2026-04-07)
 
 
