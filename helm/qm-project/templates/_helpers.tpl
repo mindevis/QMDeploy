@@ -48,7 +48,7 @@ app.kubernetes.io/part-of: qm-project
 
 {{/*
 Пароль SMTP AUTH для relay (без user:).
-Приоритет: SMTP_RELAY_PASSWORD в smtp-relay-auth → legacy QMNETWORK_SMTP_PASSWORD (совместимость) → разбор SMTP_RELAY_USERS → smtpRelayUsersPlain → sha256.
+Приоритет: SMTP_RELAY_PASSWORD в smtp-relay-auth → разбор SMTP_RELAY_USERS → smtpRelayUsersPlain → sha256.
 */}}
 {{- define "qm.smtpRelayPasswordPlain" -}}
 {{- $email := .Values.smtpRelay.relayUserEmail | default "noreply@qx-dev.ru" -}}
@@ -56,8 +56,6 @@ app.kubernetes.io/part-of: qm-project
 {{- $sec := lookup "v1" "Secret" $ns "smtp-relay-auth" -}}
 {{- if and $sec (index $sec.data "SMTP_RELAY_PASSWORD") -}}
 {{- index $sec.data "SMTP_RELAY_PASSWORD" | b64dec -}}
-{{- else if and $sec (index $sec.data "QMNETWORK_SMTP_PASSWORD") -}}
-{{- index $sec.data "QMNETWORK_SMTP_PASSWORD" | b64dec -}}
 {{- else if and $sec (index $sec.data "SMTP_RELAY_USERS") -}}
 {{- $line := index $sec.data "SMTP_RELAY_USERS" | b64dec | trim -}}
 {{- if regexMatch "^[^:]+:.+$" $line -}}

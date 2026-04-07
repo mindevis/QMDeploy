@@ -78,8 +78,6 @@ def _mask_secret_key(key: str, val: str) -> str:
         "JWT_SECRET",
         "QMBILLING_ADMIN_SECRET",
         "QMSERVER_CLOUD_LICENSE_KEY",
-        "QMSECRET_MASTER_KEY",
-        "QMSECRET_SERVICE_TOKEN",
     ):
         return f"<{len(val)} chars>"
     if key.endswith("_DSN") or key == "DB_DSN":
