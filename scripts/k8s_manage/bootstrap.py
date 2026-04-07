@@ -13,8 +13,8 @@ Application на чарт qm-project из Git (values-argocd.yaml). Монито
 Legacy: --direct-helm — прежний helm upgrade --install qm; все оставшиеся аргументы передаются в helm.
 
 Greenfield (чистый сервер): одна команда — K3s, Helm, при необходимости секреты qm-mysql/qm-app
-(**--cloud-license-key-file** или **--cloud-license-key**), затем Argo CD + Application **qm**.
-Отдельно создайте **ghcr-credentials** в namespace **qm** до/сразу после первого Sync (см. README).
+(**--cloud-license-key-file** или **--cloud-license-key**), **ghcr-credentials** из **`/root/.ghcr-credentials`**
+(одна строка = PAT, user по умолчанию **mindevis**; см. **--ghcr-username**), затем Argo CD + Application **qm**.
 
 Требуется: Python 3, curl; для GitOps-режима после установки K3s — доступ к API (KUBECONFIG).
 
@@ -112,6 +112,19 @@ def _maybe_greenfield_secrets(args: argparse.Namespace) -> None:
         forward.append("--no-scrub-history")
     print("Greenfield: qm-mysql + qm-app (secrets) …", flush=True)
     secrets_main(forward)
+
+
+def _maybe_ghcr_credentials(args: argparse.Namespace) -> None:
+    from k8s_manage.ghcr_credentials import maybe_apply_ghcr_from_file
+
+    user_default = (os.environ.get("GHCR_USERNAME") or "").strip() or args.ghcr_username
+    maybe_apply_ghcr_from_file(
+        namespace=args.qm_namespace,
+        cred_path=args.ghcr_credentials_file,
+        default_username=user_default,
+        skip=args.skip_ghcr_credentials,
+        force=args.recreate_ghcr_credentials,
+    )
 
 
 def _warn_missing_secrets(namespace: str) -> None:
@@ -265,6 +278,29 @@ def main(argv: list[str] | None = None) -> None:
         action="store_true",
         help="Не чистить history при --cloud-license-key (см. k8s-manage secrets)",
     )
+    p.add_argument(
+        "--ghcr-credentials-file",
+        type=Path,
+        default=Path("/root/.ghcr-credentials"),
+        metavar="PATH",
+        help="Файл: одна строка = PAT для ghcr.io (user по умолчанию mindevis), две строки: username и PAT",
+    )
+    p.add_argument(
+        "--ghcr-username",
+        default="mindevis",
+        metavar="USER",
+        help="Docker username для ghcr.io при однострочном PAT-файле (переопределяется GHCR_USERNAME)",
+    )
+    p.add_argument(
+        "--skip-ghcr-credentials",
+        action="store_true",
+        help="Не создавать Secret ghcr-credentials из файла",
+    )
+    p.add_argument(
+        "--recreate-ghcr-credentials",
+        action="store_true",
+        help="Удалить существующий ghcr-credentials в namespace и создать заново",
+    )
     if argv is None:
         args, unknown = p.parse_known_args()
     else:
@@ -283,6 +319,7 @@ def main(argv: list[str] | None = None) -> None:
         if "KUBECONFIG" not in os.environ:
             os.environ["KUBECONFIG"] = "/etc/rancher/k3s/k3s.yaml"
         _maybe_greenfield_secrets(args)
+        _maybe_ghcr_credentials(args)
         namespace = os.environ.get("NAMESPACE", "qm")
         release = os.environ.get("RELEASE_NAME", "qm")
         _direct_helm_upgrade(namespace, release, unknown)
@@ -313,6 +350,7 @@ def main(argv: list[str] | None = None) -> None:
         os.environ["KUBECONFIG"] = "/etc/rancher/k3s/k3s.yaml"
 
     _maybe_greenfield_secrets(args)
+    _maybe_ghcr_credentials(args)
     _warn_missing_secrets(args.qm_namespace)
 
     if args.skip_argocd:
