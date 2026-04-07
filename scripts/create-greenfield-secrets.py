@@ -5,15 +5,13 @@
 qm-app включает ключи **QMServer Cloud** (лицензия) и **QMSecret** (master key + service token),
 как в GitOps-пути (**values-argocd.yaml**: qmsecret.enabled: true).
 
-На сервере K3s выполняйте от root (тот же kubeconfig, что и у install-k3s-helm.py).
+На сервере K3s выполняйте от root. Обычно: **`k8s-manage.py --cloud-license-key-file …`** (bootstrap);
+этот модуль вызывается оттуда или вручную: **`k8s-manage.py secrets`**.
 
-Обычно на чистом сервере секреты создаются через **`install-k3s-helm.py --cloud-license-key-file`**;
-этот скрипт — для **`--dry-run`**, отладки или ручного порядка.
+Нужен доступ к API: **`kubectl`** или **`k3s kubectl`**. Если кластера нет: **`k8s-manage.py bootstrap --skip-argocd`**
+или полный **`k8s-manage.py`** с лицензией.
 
-Нужен доступ к API: **`kubectl`** или **`k3s kubectl`**. Если кластера нет, сначала
-**`install-k3s-helm.py`** (с ключом лицензии или **`--skip-argocd`** + повтор с ключом).
-
-Запускайте до полного bootstrap (второй запуск **install-k3s-helm.py** / Argo sync) или после
+Запускайте до полного GitOps-sync или после
 **kubectl delete secret** … Повтор без **--force**: ошибка «уже существует».
 
 Ключ лицензии: **`--cloud-license-key`** или **`--cloud-license-key-file`** (предпочтительно —
@@ -23,9 +21,9 @@ qm-app включает ключи **QMServer Cloud** (лицензия) и **QM
 **`QM_NO_SCRUB_HISTORY=1`**. Память текущей сессии bash: выполните **`history -d -1`**
 (или перезапустите оболочку).
 
-Пример:
-  python3 scripts/create-greenfield-secrets.py -n qm --cloud-license-key-file /root/.qm-cloud-license
-  python3 scripts/create-greenfield-secrets.py -n qm --cloud-license-key '…' --dry-run
+Пример (предпочтительно через единый вход):
+  python3 scripts/k8s-manage.py secrets -n qm --cloud-license-key-file /root/.qm-cloud-license
+  python3 scripts/k8s-manage.py secrets -n qm --cloud-license-key '…' --dry-run
 """
 from __future__ import annotations
 
@@ -62,9 +60,9 @@ def _kubectl_argv0() -> list[str]:
     print(
         "ERROR: neither kubectl nor k3s in PATH.\n"
         "On a clean server run first (as root):\n"
-        "  python3 scripts/install-k3s-helm.py --skip-argocd\n"
-        "Then run this script again, create ghcr-credentials, and:\n"
-        "  python3 scripts/install-k3s-helm.py",
+        "  python3 scripts/k8s-manage.py bootstrap --skip-argocd\n"
+        "Then: k8s-manage.py secrets … , ghcr-credentials, and:\n"
+        "  python3 scripts/k8s-manage.py",
         file=sys.stderr,
     )
     sys.exit(1)
@@ -324,7 +322,7 @@ def _run(args: argparse.Namespace, lic: str) -> None:
             flush=True,
         )
         print(
-            "Then: python3 scripts/install-k3s-helm.py   # от root: K3s, Helm, Argo CD + Application qm",
+            "Then: python3 scripts/k8s-manage.py   # от root: K3s, Helm, Argo CD + Application qm",
             flush=True,
         )
         return
@@ -355,7 +353,7 @@ def _run(args: argparse.Namespace, lic: str) -> None:
 
     print(f"OK: secrets qm-mysql and qm-app in namespace {ns}", flush=True)
     print(
-        "Next: python3 scripts/install-k3s-helm.py   # от root: K3s, Helm, Argo CD + Application qm",
+        "Next: python3 scripts/k8s-manage.py   # от root: K3s, Helm, Argo CD + Application qm",
         flush=True,
     )
 

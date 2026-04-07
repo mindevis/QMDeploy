@@ -2,6 +2,8 @@
 """
 QMDeploy: bootstrap K3s (optional), Helm 3 (optional), затем по умолчанию Argo CD + Application «qm» (GitOps).
 
+Предпочтительная точка входа: **scripts/k8s-manage.py** (эта логика = подкоманда **bootstrap**).
+
 На целевом сервере, где ставится K3s, поддерживается работа только от пользователя root (установка K3s/Helm,
 симлинк kubectl, kubeconfig /etc/rancher/k3s/k3s.yaml).
 
@@ -33,7 +35,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CHART = ROOT / "helm" / "qm-project"
 OPTIONAL_ADDONS = ROOT / "scripts" / "install-optional-addons.py"
-GREENFIELD_SECRETS = ROOT / "scripts" / "create-greenfield-secrets.py"
+K8S_MANAGE = ROOT / "scripts" / "k8s-manage.py"
 
 
 def _has_cluster_cli() -> bool:
@@ -89,15 +91,16 @@ def _install_helm() -> None:
 
 
 def _maybe_greenfield_secrets(args: argparse.Namespace) -> None:
-    """Создаёт qm-mysql / qm-app, если передан ключ (один вызов вместо отдельного скрипта)."""
+    """Создаёт qm-mysql / qm-app через k8s-manage.py secrets, если передан ключ."""
     if args.cloud_license_key_file is None and args.cloud_license_key is None:
         return
-    if not GREENFIELD_SECRETS.is_file():
-        print(f"ERROR: missing {GREENFIELD_SECRETS}", file=sys.stderr)
+    if not K8S_MANAGE.is_file():
+        print(f"ERROR: missing {K8S_MANAGE}", file=sys.stderr)
         sys.exit(1)
     cmd = [
         sys.executable,
-        str(GREENFIELD_SECRETS),
+        str(K8S_MANAGE),
+        "secrets",
         "-n",
         args.qm_namespace,
     ]
@@ -130,10 +133,10 @@ def _warn_missing_secrets(namespace: str) -> None:
         capture_output=True,
     )
     if r.returncode != 0:
-        helper = ROOT / "scripts" / "create-greenfield-secrets.py"
+        helper = ROOT / "scripts" / "k8s-manage.py"
         print(
             f"WARNING: secret qm-mysql not in namespace {namespace!r}. "
-            f"Create secrets first, e.g.: python3 {helper} -n {namespace}\n"
+            f"Create secrets first, e.g.: python3 {helper} secrets -n {namespace} --cloud-license-key-file …\n"
             f"(suppress: SKIP_SECRET_CHECK=1)",
             file=sys.stderr,
         )
@@ -299,7 +302,7 @@ def main() -> None:
         print(
             "Default mode uses Argo CD (no local helm release for qm). "
             "For legacy direct install (as root on K3s server): "
-            "python3 scripts/install-k3s-helm.py --direct-helm -f my-values.yaml",
+            "python3 scripts/k8s-manage.py bootstrap --direct-helm -f my-values.yaml",
             file=sys.stderr,
         )
         sys.exit(1)

@@ -1,3 +1,15 @@
+# [1.9.10](https://github.com/mindevis/QMDeploy/compare/v1.9.9...v1.9.10) (2026-04-07)
+
+
+### Features
+
+* **scripts:** **`k8s-manage.py`** — unified entry (no subcommand → bootstrap; **`bootstrap`**, **`secrets`**, **`addons`** delegate to existing scripts; **`--version`**).
+* **scripts:** greenfield secret step in **`install-k3s-helm.py`** runs **`k8s-manage.py secrets …`** (same flags).
+
+### Documentation
+
+* **readme / QMDocs / sync-from-github:** prefer **`k8s-manage.py`** as primary command.
+
 # [1.9.9](https://github.com/mindevis/QMDeploy/compare/v1.9.8...v1.9.9) (2026-04-07)
 
 
