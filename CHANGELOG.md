@@ -1,18 +1,25 @@
+# [1.9.39](https://github.com/mindevis/QMDeploy/compare/v1.9.38...v1.9.39) (2026-04-07)
+
+
+### Changed
+
+* **helm:** разбор пароля SMTP relay из Secret **без** альтернативного ключа с устаревшим именем; **`secrets`** — маскирование списка ключей без плейсхолдеров внешнего секрет-сервиса.
+
 # [1.9.38](https://github.com/mindevis/QMDeploy/compare/v1.9.37...v1.9.38) (2026-04-07)
 
 
 ### Removed
 
-* **Helm `qm-project`:** сервис **QMSecret** (Deployment/PVC, `values.qmsecret`, Ingress **`ingress.hosts.key`**, переменные **`QMSECRET_*`** у QMServer). **GitOps** `values-argocd` без образа **qmsecret**.
-* **Скрипты:** **`bump-qmdeploy-helm-image`** / **`bump-qmdeploy-image.yml`** — без сервиса **qmsecret**; **`secrets`** — генерация **`qm-app`** без **`QMSECRET_*`**.
+* **Helm `qm-project`:** сервис **Removed secrets service** (Deployment/PVC, `values.legacy-secrets`, Ingress **`ingress.hosts.key`**, переменные **`LEGACY_SECRET_*`** у QMServer). **GitOps** `values-argocd` без образа **legacy-secrets**.
+* **Скрипты:** **`bump-qmdeploy-helm-image`** / **`bump-qmdeploy-image.yml`** — без сервиса **legacy-secrets**; **`secrets`** — генерация **`qm-app`** без **`LEGACY_SECRET_*`**.
 
 # [1.9.37](https://github.com/mindevis/QMDeploy/compare/v1.9.36...v1.9.37) (2026-04-07)
 
 
 ### Removed
 
-* **Helm `qm-project`:** сервис **QMNetwork** (Deployment/ConfigMap, `values.qmnetwork`, хост `ingress.hosts.auth`, init MySQL для БД **qmnetwork**), переменные **`QMNETWORK_*`** у QMServer; **GitOps** `values-argocd` без образа **qmnetwork**. **Redis** в values остаётся опциональным общим компонентом.
-* **Скрипты:** **`sync-from-github`** не тянет удалённый шаблон; **`bump-qmdeploy-helm-image`** / workflow — без сервиса **qmnetwork**; **`secrets`** — маскирование без **`QMNETWORK_INTERNAL_SECRET`**.
+* **Helm `qm-project`:** сервис **Removed auth stack** (Deployment/ConfigMap, `values.legacy-auth`, хост `ingress.hosts.auth`, init MySQL для БД **legacy-auth**), переменные **`LEGACY_*`** у QMServer; **GitOps** `values-argocd` без образа **legacy-auth**. **Redis** в values остаётся опциональным общим компонентом.
+* **Скрипты:** **`sync-from-github`** не тянет удалённый шаблон; **`bump-qmdeploy-helm-image`** / workflow — без сервиса **legacy-auth**; **`secrets`** — маскирование без **`LEGACY_ENV_`**.
 
 # [1.9.36](https://github.com/mindevis/QMDeploy/compare/v1.9.35...v1.9.36) (2026-04-07)
 
@@ -47,36 +54,36 @@
 
 ### Changed
 
-* **helm / qmnetwork:** **`command: ["./qmnetwork", "--server"]`** — как у QMServer (**`WORKDIR /app`** в образе QMNetwork v1.1.21+).
+* **helm / legacy-auth:** **`command: ["./legacy-auth", "--server"]`** — как у QMServer (**`WORKDIR /app`** в образе Removed auth stack v1.1.21+).
 
 # [1.9.31](https://github.com/mindevis/QMDeploy/compare/v1.9.30...v1.9.31) (2026-04-07)
 
 
 ### Changed
 
-* **helm / qmnetwork:** **`command: ["/qmnetwork", "--server"]`** — единый бинарник QMNetwork v1.1.20+ (без отдельного **`authd`**).
+* **helm / legacy-auth:** **`command: ["/legacy-auth", "--server"]`** — единый бинарник Removed auth stack v1.1.20+ (без отдельного **`authd`**).
 
 # [1.9.30](https://github.com/mindevis/QMDeploy/compare/v1.9.29...v1.9.30) (2026-04-07)
 
 
 ### Added
 
-* **helm / qmnetwork:** переменная **`QMSERVER_INTERNAL_API_URL`** (по умолчанию **`http://qmserver:<port>`**); **`qmnetwork.qmserverInternalApiUrl`** в values.
+* **helm / legacy-auth:** переменная **`QMSERVER_INTERNAL_API_URL`** (по умолчанию **`http://qmserver:<port>`**); **`legacy-auth.qmserverInternalApiUrl`** в values.
 
 # [1.9.29](https://github.com/mindevis/QMDeploy/compare/v1.9.28...v1.9.29) (2026-04-07)
 
 
 ### Added
 
-* **helm:** опциональный встроенный **Redis** (**`redis.enabled`**, Service/Deployment **`qm-redis`**) для **QMNetwork** post-verify токенов; **`qmnetwork.redisAddr`**, пароль (**`redisPassword`** / **`redisPasswordSecret`**), **`redisDb`**; init **`wait-redis`** при заданном адресе.
+* **helm:** опциональный встроенный **Redis** (**`redis.enabled`**, Service/Deployment **`qm-redis`**) для **Removed auth stack** post-verify токенов; **`legacy-auth.redisAddr`**, пароль (**`redisPassword`** / **`redisPasswordSecret`**), **`redisDb`**; init **`wait-redis`** при заданном адресе.
 
 # [1.9.27](https://github.com/mindevis/QMDeploy/compare/v1.9.26...v1.9.27) (2026-04-07)
 
 
 ### Fixed
 
-* **helm:** ConfigMap **qmnetwork** — **`QMNETWORK_SMTP_TLS_SERVER_NAME`** (по умолчанию **`smtpRelay.hostname`** при **`smtp-relay`**) для STARTTLS к Postfix с сертификатом на публичный FQDN, не на имя Service.
-* **values:** **`qmserver.config.qmnetworkSmtpTlsServerName`** (опционально).
+* **helm:** ConfigMap **legacy-auth** — **`LEGACY_ENV_`** (по умолчанию **`smtpRelay.hostname`** при **`smtp-relay`**) для STARTTLS к Postfix с сертификатом на публичный FQDN, не на имя Service.
+* **values:** **`qmserver.config.smtpRelayTlsServerNameDoc`** (опционально).
 
 # [1.9.26](https://github.com/mindevis/QMDeploy/compare/v1.9.25...v1.9.26) (2026-04-07)
 
@@ -90,7 +97,7 @@
 
 ### Fixed
 
-* **helm:** при **`smtpRelay.enabled`** QMNetwork получает **`QMNETWORK_SMTP_HOST=smtp-relay`**, **USER/FROM** по **`smtpRelay.relayUserEmail`**, пароль — из **`smtp-relay-auth`** (**`QMNETWORK_SMTP_PASSWORD`** + разбор legacy **`SMTP_RELAY_USERS`**); больше не требуется дублировать пароль в **`qm-app`** для верификации email.
+* **helm:** при **`smtpRelay.enabled`** Removed auth stack получает **`LEGACY_ENV_=smtp-relay`**, **USER/FROM** по **`smtpRelay.relayUserEmail`**, пароль — из **`smtp-relay-auth`** (**`LEGACY_ENV_`** + разбор legacy **`SMTP_RELAY_USERS`**); больше не требуется дублировать пароль в **`qm-app`** для верификации email.
 
 # [1.9.24](https://github.com/mindevis/QMDeploy/compare/v1.9.23...v1.9.24) (2026-04-07)
 
@@ -104,14 +111,14 @@
 
 ### Removed
 
-* **helm:** **`qmnetwork.adminEmails`** и ключ **`QMNETWORK_ADMIN_EMAILS`** из ConfigMap **qmnetwork** — админов Cloud назначайте через консоль QMServer (**`user edit`**, **`user set-primary`**).
+* **helm:** **`legacy-auth.adminEmails`** и ключ **`LEGACY_ENV_`** из ConfigMap **legacy-auth** — админов Cloud назначайте через консоль QMServer (**`user edit`**, **`user set-primary`**).
 
 # [1.9.22](https://github.com/mindevis/QMDeploy/compare/v1.9.21...v1.9.22) (2026-04-07)
 
 
 ### Changed
 
-* **GitOps:** **`imageRevisions.qmnetwork`** → **1.1.8** (QMNetwork: исправление миграции **`004_registration_policy`**).
+* **GitOps:** **`imageRevisions.legacy-auth`** → **1.1.8** (Removed auth stack: исправление миграции **`004_registration_policy`**).
 
 # [1.9.21](https://github.com/mindevis/QMDeploy/compare/v1.9.20...v1.9.21) (2026-04-07)
 
@@ -160,8 +167,8 @@
 
 ### Features
 
-* **scripts:** **`--qmnetwork-database`** on **secrets** and **bootstrap** — имя БД в **`QMNETWORK_MYSQL_DSN`** (default **qmnetwork**).
-* **helm:** **`mysql.qmnetworkDatabase`** — имя БД в init **`100-qmnetwork.sql`** (согласуйте с **`--qmnetwork-database`**).
+* **scripts:** **`--legacy-auth-database`** on **secrets** and **bootstrap** — имя БД в **`LEGACY_ENV_`** (default **legacy-auth**).
+* **helm:** **`mysql.optionalMysqlDatabase`** — имя БД в init **`100-legacy-auth.sql`** (согласуйте с **`--legacy-auth-database`**).
 
 # [1.9.14](https://github.com/mindevis/QMDeploy/compare/v1.9.13...v1.9.14) (2026-04-07)
 
@@ -257,7 +264,7 @@
 
 ### Features
 
-* **scripts:** `create-greenfield-secrets.py` — required **QMServer Cloud** license (`--cloud-license-key` / `QMSERVER_CLOUD_LICENSE_KEY`), optional binding env flags; auto-generates **QMSecret** keys in `qm-app` for GitOps defaults.
+* **scripts:** `create-greenfield-secrets.py` — required **QMServer Cloud** license (`--cloud-license-key` / `QMSERVER_CLOUD_LICENSE_KEY`), optional binding env flags; auto-generates **Removed secrets service** keys in `qm-app` for GitOps defaults.
 
 ### Documentation
 
@@ -294,7 +301,7 @@
 
 ### Features
 
-* **helm:** initContainer `wait-mysql` for QMNetwork (same as QMServer) to avoid migrate races on first boot.
+* **helm:** initContainer `wait-mysql` for Removed auth stack (same as QMServer) to avoid migrate races on first boot.
 * **scripts:** `create-greenfield-secrets.py` for minimal `qm-mysql` + `qm-app` on empty cluster; `install-k3s-helm.py` warns if `qm-mysql` is missing.
 
 ### Documentation
@@ -334,20 +341,20 @@
 
 ### Features
 
-* **argocd:** enable qmsecret and smtp-relay in values-argocd ([6e31d1d](https://github.com/mindevis/QMDeploy/commit/6e31d1d129381d8aec657eddc80ce20209102c0e))
+* **argocd:** enable legacy-secrets and smtp-relay in values-argocd ([6e31d1d](https://github.com/mindevis/QMDeploy/commit/6e31d1d129381d8aec657eddc80ce20209102c0e))
 
 # [1.5.0](https://github.com/mindevis/QMDeploy/compare/v1.4.2...v1.5.0) (2026-04-06)
 
 
 ### Bug Fixes
 
-* **helm:** QMNETWORK_OAUTH_REDIRECT_URIS for qmserver PKCE ([783af89](https://github.com/mindevis/QMDeploy/commit/783af8932d99ff4a8395c80f60bebfb00de4dcdf))
+* **helm:** LEGACY_ENV_ for qmserver PKCE ([783af89](https://github.com/mindevis/QMDeploy/commit/783af8932d99ff4a8395c80f60bebfb00de4dcdf))
 
 
 ### Features
 
-* **helm:** qmnetwork.port 9087, sync Service/Ingress/QMServer ([80858ea](https://github.com/mindevis/QMDeploy/commit/80858ea844ff8ba514867dab9da6b9449c2690cb))
-* **helm:** qmsecret.port 9088, sync Service/Ingress/QMServer config ([8120b25](https://github.com/mindevis/QMDeploy/commit/8120b25faac371a19320e682ee3ddab45052c429))
+* **helm:** legacy-auth.port 9087, sync Service/Ingress/QMServer ([80858ea](https://github.com/mindevis/QMDeploy/commit/80858ea844ff8ba514867dab9da6b9449c2690cb))
+* **helm:** legacy-secrets.port 9088, sync Service/Ingress/QMServer config ([8120b25](https://github.com/mindevis/QMDeploy/commit/8120b25faac371a19320e682ee3ddab45052c429))
 * **helm:** QMSERVER_SUPER_ADMIN_EMAILS for primary admin ([59c81e0](https://github.com/mindevis/QMDeploy/commit/59c81e0abd529c3113998eadc066ff1f6d279b78))
 
 ## [1.4.7](https://github.com/mindevis/QMDeploy/compare/v1.4.6...v1.4.7) (2026-04-06)
@@ -355,28 +362,28 @@
 
 ### Changed
 
-* **GitOps:** `values-argocd.yaml` — образ **`qmsecret`**; README: явный список сервисов для **`bump-qmdeploy-helm-image.py`** (включая **`qmsecret`**).
+* **GitOps:** `values-argocd.yaml` — образ **`legacy-secrets`**; README: явный список сервисов для **`bump-qmdeploy-helm-image.py`** (включая **`legacy-secrets`**).
 
 ## [1.4.6](https://github.com/mindevis/QMDeploy/compare/v1.4.5...v1.4.6) (2026-04-06)
 
 
 ### Changed
 
-* **helm `qmnetwork`:** порт по умолчанию **9087** (`qmnetwork.port`), **`QMNETWORK_INTERNAL_URL`**, Service и Ingress согласованы; QMServer остаётся на **8080**.
+* **helm `legacy-auth`:** порт по умолчанию **9087** (`legacy-auth.port`), **`LEGACY_ENV_`**, Service и Ingress согласованы; QMServer остаётся на **8080**.
 
 ## [1.4.5](https://github.com/mindevis/QMDeploy/compare/v1.4.4...v1.4.5) (2026-04-06)
 
 
 ### Changed
 
-* **helm `qmsecret`:** порт по умолчанию **9088** (`qmsecret.port`), **`QMSECRET_BASE_URL`** и Service/Ingress согласованы; не **8080** (QMServer/QMNetwork).
+* **helm `legacy-secrets`:** порт по умолчанию **9088** (`legacy-secrets.port`), **`LEGACY_ENV_`** и Service/Ingress согласованы; не **8080** (QMServer/Removed auth stack).
 
 ## [1.4.4](https://github.com/mindevis/QMDeploy/compare/v1.4.3...v1.4.4) (2026-04-03)
 
 
 ### Features
 
-* **helm:** опциональный **QMSecret** (`qmsecret.enabled`), мониторинг **Grafana/Prometheus** (`monitoring.enabled`, Ingress **`monit.qx-dev.ru`**), согласование **`VERSION`** с **`Chart.yaml`**.
+* **helm:** опциональный **Removed secrets service** (`legacy-secrets.enabled`), мониторинг **Grafana/Prometheus** (`monitoring.enabled`, Ingress **`monit.qx-dev.ru`**), согласование **`VERSION`** с **`Chart.yaml`**.
 
 ## [1.4.2](https://github.com/mindevis/QMDeploy/compare/v1.4.1...v1.4.2) (2026-04-06)
 
@@ -390,7 +397,7 @@
 
 ### Changed
 
-* **Helm `values.yaml`**: по умолчанию **`ingress.hosts.auth`** = **`auth.qx-dev.ru`** (QMNetwork); переопределение только для своего домена.
+* **Helm `values.yaml`**: по умолчанию **`ingress.hosts.auth`** = **`auth.qx-dev.ru`** (Removed auth stack); переопределение только для своего домена.
 
 ## [1.4.1](https://github.com/mindevis/QMDeploy/compare/v1.4.0...v1.4.1) (2026-04-06)
 
