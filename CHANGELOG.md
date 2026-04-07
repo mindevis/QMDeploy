@@ -1,3 +1,15 @@
+# [1.9.1](https://github.com/mindevis/QMDeploy/compare/v1.9.0...v1.9.1) (2026-04-07)
+
+
+### Features
+
+* **helm:** initContainer `wait-mysql` for QMNetwork (same as QMServer) to avoid migrate races on first boot.
+* **scripts:** `create-greenfield-secrets.py` for minimal `qm-mysql` + `qm-app` on empty cluster; `install-k3s-helm.py` warns if `qm-mysql` is missing.
+
+### Documentation
+
+* **readme:** greenfield / full reinstall steps (secrets, `helm uninstall`, delete PVC).
+
 # [1.9.0](https://github.com/mindevis/QMDeploy/compare/v1.8.0...v1.9.0) (2026-04-06)
 
 
