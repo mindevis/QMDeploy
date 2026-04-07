@@ -1,3 +1,10 @@
+# [1.9.16](https://github.com/mindevis/QMDeploy/compare/v1.9.15...v1.9.16) (2026-04-07)
+
+
+### Features
+
+* **scripts:** после установки Argo CD (**`addons --argocd`** / **`bootstrap`**) в консоль выводятся **URL** UI, **логин `admin`** и **начальный пароль** (Secret **`argocd-initial-admin-secret`**); поддержка **`k3s kubectl`**, если **`kubectl`** не в PATH.
+
 # [1.9.15](https://github.com/mindevis/QMDeploy/compare/v1.9.14...v1.9.15) (2026-04-07)
 
 

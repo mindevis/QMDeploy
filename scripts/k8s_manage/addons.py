@@ -18,9 +18,12 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 _QMDEPLOY_ROOT = Path(__file__).resolve().parents[2]
@@ -43,8 +46,30 @@ def helm_cmd(args: argparse.Namespace) -> list[str]:
     return cmd
 
 
+def _ensure_kubeconfig() -> None:
+    if os.environ.get("KUBECONFIG"):
+        return
+    kc = Path("/etc/rancher/k3s/k3s.yaml")
+    if kc.is_file():
+        os.environ["KUBECONFIG"] = str(kc)
+
+
+def _kubectl_argv0() -> list[str]:
+    """['kubectl'] или ['k3s', 'kubectl'] на хосте без симлинка kubectl."""
+    if shutil.which("kubectl"):
+        return ["kubectl"]
+    if shutil.which("k3s"):
+        _ensure_kubeconfig()
+        return ["k3s", "kubectl"]
+    return []
+
+
 def kubectl_cmd(args: argparse.Namespace) -> list[str]:
-    cmd = ["kubectl"]
+    argv0 = _kubectl_argv0()
+    if not argv0:
+        print("ОШИБКА: нужен kubectl или k3s (команда в PATH).", file=sys.stderr)
+        sys.exit(1)
+    cmd = list(argv0)
     if args.kubeconfig:
         cmd.extend(["--kubeconfig", args.kubeconfig])
     return cmd
@@ -57,8 +82,8 @@ def ensure_helm() -> None:
 
 
 def ensure_kubectl() -> None:
-    if not shutil.which("kubectl"):
-        print("ОШИБКА: нужен kubectl (команда kubectl в PATH).", file=sys.stderr)
+    if not _kubectl_argv0():
+        print("ОШИБКА: нужен kubectl или k3s (команда в PATH).", file=sys.stderr)
         sys.exit(1)
 
 
@@ -98,13 +123,60 @@ def install_argocd(args: argparse.Namespace) -> None:
             *ver,
         ]
     )
-    print(
-        f"Argo CD UI: https://{args.argocd_host}/ — пароль admin: "
-        "kubectl -n argocd get secret argocd-initial-admin-secret "
-        "-o jsonpath='{.data.password}' | base64 -d && echo",
-        flush=True,
-    )
+    _print_argocd_access(args)
     apply_argocd_qm_application(args)
+
+
+def _fetch_argocd_initial_admin_password(args: argparse.Namespace) -> str | None:
+    """Читает начальный пароль admin из Secret (появляется сразу после установки чарта)."""
+    k = kubectl_cmd(args)
+    for _ in range(30):
+        r = subprocess.run(
+            [
+                *k,
+                "get",
+                "secret",
+                "argocd-initial-admin-secret",
+                "-n",
+                "argocd",
+                "-o",
+                "jsonpath={.data.password}",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        if r.returncode == 0 and r.stdout.strip():
+            try:
+                return base64.b64decode(r.stdout.strip()).decode("utf-8")
+            except (ValueError, UnicodeError):
+                return None
+        time.sleep(2)
+    return None
+
+
+def _print_argocd_access(args: argparse.Namespace) -> None:
+    ensure_kubectl()
+    url = f"https://{args.argocd_host}/"
+    pwd = _fetch_argocd_initial_admin_password(args)
+    k_join = " ".join(kubectl_cmd(args))
+    print("", flush=True)
+    print("=== Argo CD — вход в UI ===", flush=True)
+    print(f"  URL:    {url}", flush=True)
+    print("  Логин:  admin", flush=True)
+    if pwd:
+        print(f"  Пароль: {pwd}", flush=True)
+        print(
+            "  (начальный пароль из Secret argocd-initial-admin-secret; после смены — см. docs Argo CD)",
+            flush=True,
+        )
+    else:
+        print(
+            "  Пароль: не удалось прочитать автоматически; команда:\n"
+            f"    {k_join} -n argocd get secret argocd-initial-admin-secret "
+            "-o jsonpath='{.data.password}' | base64 -d && echo",
+            flush=True,
+        )
+    print("", flush=True)
 
 
 def apply_argocd_qm_application(args: argparse.Namespace) -> None:
