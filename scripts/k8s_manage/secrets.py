@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Создаёт Secret qm-mysql и qm-app для первичного развёртывания в пустом namespace.
 
@@ -6,7 +5,7 @@ qm-app включает ключи **QMServer Cloud** (лицензия) и **QM
 как в GitOps-пути (**values-argocd.yaml**: qmsecret.enabled: true).
 
 На сервере K3s выполняйте от root. Обычно: **`k8s-manage.py --cloud-license-key-file …`** (bootstrap);
-этот модуль вызывается оттуда или вручную: **`k8s-manage.py secrets`**.
+вручную: **`k8s-manage.py secrets`**.
 
 Нужен доступ к API: **`kubectl`** или **`k3s kubectl`**. Если кластера нет: **`k8s-manage.py bootstrap --skip-argocd`**
 или полный **`k8s-manage.py`** с лицензией.
@@ -21,7 +20,7 @@ qm-app включает ключи **QMServer Cloud** (лицензия) и **QM
 **`QM_NO_SCRUB_HISTORY=1`**. Память текущей сессии bash: выполните **`history -d -1`**
 (или перезапустите оболочку).
 
-Пример (предпочтительно через единый вход):
+Пример:
   python3 scripts/k8s-manage.py secrets -n qm --cloud-license-key-file /root/.qm-cloud-license
   python3 scripts/k8s-manage.py secrets -n qm --cloud-license-key '…' --dry-run
 """
@@ -38,7 +37,7 @@ import sys
 import time
 from pathlib import Path
 
-SCRIPT_MARKER = "create-greenfield-secrets.py"
+SCRIPT_MARKER = "k8s-manage.py"
 CLI_KEY_FLAG = "--cloud-license-key"
 
 
@@ -114,7 +113,7 @@ def _candidate_histfiles() -> list[Path]:
 
 def _scrub_last_risky_line(path: Path) -> bool:
     """
-    Удаляет с конца файла первую строку, содержащую вызов этого скрипта и --cloud-license-key
+    Удаляет с конца файла первую строку, содержащую вызов k8s-manage и --cloud-license-key
     (но не --cloud-license-key-file), чтобы вырезать ключ из истории.
     """
     try:
@@ -168,7 +167,7 @@ def _load_license(args: argparse.Namespace) -> tuple[str, bool]:
     return lic, True
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(
         description=(
             "Bootstrap qm-mysql + qm-app Secrets for a fresh QM stack (K3s / Kubernetes). "
@@ -232,7 +231,10 @@ def main() -> None:
         metavar="NAMES",
         help="Привязка лицензии: имена Kubernetes node через запятую. Опционально.",
     )
-    args = p.parse_args()
+    if argv is None:
+        args = p.parse_args()
+    else:
+        args = p.parse_args(argv)
 
     lic, license_via_cli = _load_license(args)
     if not lic:
@@ -356,7 +358,3 @@ def _run(args: argparse.Namespace, lic: str) -> None:
         "Next: python3 scripts/k8s-manage.py   # от root: K3s, Helm, Argo CD + Application qm",
         flush=True,
     )
-
-
-if __name__ == "__main__":
-    main()

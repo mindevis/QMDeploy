@@ -1,4 +1,4 @@
-# Шаблон: плейсхолдеры подставляют scripts/k8s-manage.py addons / install-optional-addons.py (GitOps bootstrap).
+# Шаблон: плейсхолдеры подставляет k8s-manage.py addons (GitOps bootstrap).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

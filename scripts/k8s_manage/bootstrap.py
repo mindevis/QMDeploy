@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
 """
 QMDeploy: bootstrap K3s (optional), Helm 3 (optional), затем по умолчанию Argo CD + Application «qm» (GitOps).
 
-Предпочтительная точка входа: **scripts/k8s-manage.py** (эта логика = подкоманда **bootstrap**).
+Точка входа: **scripts/k8s-manage.py** (подкоманда **bootstrap** или без подкоманды).
 
 На целевом сервере, где ставится K3s, поддерживается работа только от пользователя root (установка K3s/Helm,
 симлинк kubectl, kubeconfig /etc/rancher/k3s/k3s.yaml).
@@ -13,7 +12,7 @@ Application на чарт qm-project из Git (values-argocd.yaml). Монито
 
 Legacy: --direct-helm — прежний helm upgrade --install qm; все оставшиеся аргументы передаются в helm.
 
-Greenfield (чистый сервер): одна команда — K3s, Helm, при необходимости **create-greenfield-secrets**
+Greenfield (чистый сервер): одна команда — K3s, Helm, при необходимости секреты qm-mysql/qm-app
 (**--cloud-license-key-file** или **--cloud-license-key**), затем Argo CD + Application **qm**.
 Отдельно создайте **ghcr-credentials** в namespace **qm** до/сразу после первого Sync (см. README).
 
@@ -32,9 +31,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 CHART = ROOT / "helm" / "qm-project"
-OPTIONAL_ADDONS = ROOT / "scripts" / "install-optional-addons.py"
 K8S_MANAGE = ROOT / "scripts" / "k8s-manage.py"
 
 
@@ -65,7 +63,7 @@ def _ensure_kubectl_in_path() -> None:
     if dest.exists() or dest.is_symlink():
         print(
             "ERROR: kubectl not in PATH but /usr/local/bin/kubectl exists; extend PATH "
-            "(e.g. export PATH=\"/usr/local/bin:$PATH\") or run as root.",
+            '(e.g. export PATH="/usr/local/bin:$PATH") or run as root.',
             file=sys.stderr,
         )
         sys.exit(1)
@@ -91,35 +89,29 @@ def _install_helm() -> None:
 
 
 def _maybe_greenfield_secrets(args: argparse.Namespace) -> None:
-    """Создаёт qm-mysql / qm-app через k8s-manage.py secrets, если передан ключ."""
+    """Создаёт qm-mysql / qm-app через k8s-manage secrets, если передан ключ."""
     if args.cloud_license_key_file is None and args.cloud_license_key is None:
         return
-    if not K8S_MANAGE.is_file():
-        print(f"ERROR: missing {K8S_MANAGE}", file=sys.stderr)
-        sys.exit(1)
-    cmd = [
-        sys.executable,
-        str(K8S_MANAGE),
-        "secrets",
-        "-n",
-        args.qm_namespace,
-    ]
+
+    from k8s_manage.secrets import main as secrets_main
+
+    forward: list[str] = ["-n", args.qm_namespace]
     if args.cloud_license_key_file is not None:
-        cmd.extend(["--cloud-license-key-file", str(args.cloud_license_key_file)])
+        forward.extend(["--cloud-license-key-file", str(args.cloud_license_key_file)])
     else:
-        cmd.extend(["--cloud-license-key", args.cloud_license_key])
+        forward.extend(["--cloud-license-key", args.cloud_license_key])
     if args.cloud_license_ips:
-        cmd.extend(["--cloud-license-ips", args.cloud_license_ips])
+        forward.extend(["--cloud-license-ips", args.cloud_license_ips])
     if args.cloud_license_machine_ids:
-        cmd.extend(["--cloud-license-machine-ids", args.cloud_license_machine_ids])
+        forward.extend(["--cloud-license-machine-ids", args.cloud_license_machine_ids])
     if args.cloud_license_node_names:
-        cmd.extend(["--cloud-license-node-names", args.cloud_license_node_names])
+        forward.extend(["--cloud-license-node-names", args.cloud_license_node_names])
     if args.recreate_secrets:
-        cmd.append("--force")
+        forward.append("--force")
     if args.no_scrub_history:
-        cmd.append("--no-scrub-history")
-    print("Greenfield: qm-mysql + qm-app (create-greenfield-secrets) …", flush=True)
-    subprocess.run(cmd, check=True)
+        forward.append("--no-scrub-history")
+    print("Greenfield: qm-mysql + qm-app (secrets) …", flush=True)
+    secrets_main(forward)
 
 
 def _warn_missing_secrets(namespace: str) -> None:
@@ -133,7 +125,7 @@ def _warn_missing_secrets(namespace: str) -> None:
         capture_output=True,
     )
     if r.returncode != 0:
-        helper = ROOT / "scripts" / "k8s-manage.py"
+        helper = K8S_MANAGE
         print(
             f"WARNING: secret qm-mysql not in namespace {namespace!r}. "
             f"Create secrets first, e.g.: python3 {helper} secrets -n {namespace} --cloud-license-key-file …\n"
@@ -143,9 +135,9 @@ def _warn_missing_secrets(namespace: str) -> None:
 
 
 def _run_gitops_bootstrap(ns: argparse.Namespace) -> None:
-    cmd = [
-        sys.executable,
-        str(OPTIONAL_ADDONS),
+    from k8s_manage.addons import main as addons_main
+
+    forward: list[str] = [
         "--argocd",
         "--argocd-host",
         ns.argocd_host,
@@ -157,14 +149,14 @@ def _run_gitops_bootstrap(ns: argparse.Namespace) -> None:
         ns.qm_namespace,
     ]
     if ns.argocd_chart_version:
-        cmd.extend(["--argocd-chart-version", ns.argocd_chart_version])
+        forward.extend(["--argocd-chart-version", ns.argocd_chart_version])
     if ns.argocd_skip_qm_app:
-        cmd.append("--argocd-skip-qm-app")
+        forward.append("--argocd-skip-qm-app")
     kc = os.environ.get("KUBECONFIG")
     if kc:
-        cmd.extend(["--kubeconfig", kc])
+        forward.extend(["--kubeconfig", kc])
     print("GitOps: Argo CD + Application qm …", flush=True)
-    subprocess.run(cmd, check=True)
+    addons_main(forward)
     print(
         "OK: Argo CD installed; Application «qm» syncs from Git (values-argocd.yaml). "
         "Grafana/Prometheus: set monitoring.enabled: true in values (or Argo UI), then sync — off by default.",
@@ -189,7 +181,7 @@ def _direct_helm_upgrade(namespace: str, release: str, helm_extra: list[str]) ->
     print(f"OK: helm release {release} (namespace {namespace})", flush=True)
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(
         description=(
             "Install K3s (if needed), Helm 3 (if needed), then Argo CD + GitOps Application qm by default."
@@ -236,7 +228,7 @@ def main() -> None:
         "--cloud-license-key",
         default=None,
         metavar="KEY",
-        help="QMServer Cloud license — создать qm-mysql/qm-app перед Argo (как create-greenfield-secrets)",
+        help="QMServer Cloud license — создать qm-mysql/qm-app перед Argo (как k8s-manage secrets)",
     )
     lic.add_argument(
         "--cloud-license-key-file",
@@ -266,14 +258,17 @@ def main() -> None:
     p.add_argument(
         "--recreate-secrets",
         action="store_true",
-        help="Пересоздать Secrets (как create-greenfield-secrets --force)",
+        help="Пересоздать Secrets (как k8s-manage secrets --force)",
     )
     p.add_argument(
         "--no-scrub-history",
         action="store_true",
-        help="Не чистить history при --cloud-license-key (см. create-greenfield-secrets)",
+        help="Не чистить history при --cloud-license-key (см. k8s-manage secrets)",
     )
-    args, unknown = p.parse_known_args()
+    if argv is None:
+        args, unknown = p.parse_known_args()
+    else:
+        args, unknown = p.parse_known_args(argv)
 
     if not (CHART / "Chart.yaml").is_file():
         print(f"ERROR: chart not found: {CHART / 'Chart.yaml'}", file=sys.stderr)
@@ -317,23 +312,15 @@ def main() -> None:
     if "KUBECONFIG" not in os.environ:
         os.environ["KUBECONFIG"] = "/etc/rancher/k3s/k3s.yaml"
 
-    if not OPTIONAL_ADDONS.is_file():
-        print(f"ERROR: missing {OPTIONAL_ADDONS}", file=sys.stderr)
-        sys.exit(1)
-
     _maybe_greenfield_secrets(args)
     _warn_missing_secrets(args.qm_namespace)
 
     if args.skip_argocd:
         print(
             "OK: K3s and Helm ready (--skip-argocd). Install Argo CD manually, e.g. "
-            f"python3 {OPTIONAL_ADDONS} --argocd",
+            f"python3 {K8S_MANAGE} addons --argocd",
             flush=True,
         )
         return
 
     _run_gitops_bootstrap(args)
-
-
-if __name__ == "__main__":
-    main()
