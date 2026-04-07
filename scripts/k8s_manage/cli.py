@@ -30,7 +30,7 @@ def _print_top_help() -> None:
   python3 scripts/{prog} --version
 
 Greenfield (чистый сервер), один проход:
-  python3 scripts/{prog} --cloud-license-key-file /root/.qm-cloud-license
+  python3 scripts/{prog}
 
 См. также QMDeploy/README.md"""
     )

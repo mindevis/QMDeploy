@@ -1,3 +1,16 @@
+# [1.9.40](https://github.com/mindevis/QMDeploy/compare/v1.9.39...v1.9.40) (2026-04-07)
+
+
+### Removed
+
+* **Helm `qm-project`:** переменные окружения **QMServer Cloud** и **`QMBILLING_ADMIN_SECRET`** у Deployment **qmserver**.
+* **scripts `secrets`:** лицензионный ключ и привязки Cloud; **`qm-app`** содержит только **`DB_DSN`** и **`JWT_SECRET`**.
+
+### Changed
+
+* **bootstrap:** всегда вызывает **`k8s_manage.secrets`** при greenfield (**идемпотентно**, если секреты уже есть).
+* **README / CLI:** инструкции без **`--cloud-license-key*`**.
+
 # [1.9.39](https://github.com/mindevis/QMDeploy/compare/v1.9.38...v1.9.39) (2026-04-07)
 
 

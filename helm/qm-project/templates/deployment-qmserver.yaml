@@ -100,41 +100,6 @@ spec:
                 secretKeyRef:
                   name: qm-app
                   key: JWT_SECRET
-            - name: QMBILLING_ADMIN_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: qm-app
-                  key: QMBILLING_ADMIN_SECRET
-            - name: QMSERVER_CLOUD_K8S
-              value: "1"
-            - name: QMSERVER_CLOUD_LICENSE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: qm-app
-                  key: QMSERVER_CLOUD_LICENSE_KEY
-                  optional: true
-            - name: QMSERVER_CLOUD_LICENSE_IPS
-              valueFrom:
-                secretKeyRef:
-                  name: qm-app
-                  key: QMSERVER_CLOUD_LICENSE_IPS
-                  optional: true
-            - name: QMSERVER_CLOUD_LICENSE_MACHINE_IDS
-              valueFrom:
-                secretKeyRef:
-                  name: qm-app
-                  key: QMSERVER_CLOUD_LICENSE_MACHINE_IDS
-                  optional: true
-            - name: QMSERVER_CLOUD_LICENSE_NODE_NAMES
-              valueFrom:
-                secretKeyRef:
-                  name: qm-app
-                  key: QMSERVER_CLOUD_LICENSE_NODE_NAMES
-                  optional: true
-            - name: NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
           volumeMounts:
             - name: data
               mountPath: /app/.servers
