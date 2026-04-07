@@ -31,6 +31,3 @@ data:
   QMNETWORK_SMTP_USER: {{ .Values.qmserver.config.qmnetworkSmtpUser | default "" | quote }}
   QMNETWORK_SMTP_FROM: {{ .Values.qmserver.config.qmnetworkSmtpFrom | default "" | quote }}
   QMNETWORK_EMAIL_VERIFY_TTL: {{ .Values.qmserver.config.qmnetworkEmailVerifyTTL | default "48h" | quote }}
-  {{- if .Values.qmnetwork.adminEmails }}
-  QMNETWORK_ADMIN_EMAILS: {{ .Values.qmnetwork.adminEmails | quote }}
-  {{- end }}

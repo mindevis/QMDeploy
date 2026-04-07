@@ -242,8 +242,6 @@ qmnetwork:
   mysqlDsn: ""
   # Публичный origin портала (QMNETWORK_PUBLIC_ORIGIN). Пусто — https?://ingress.hosts.auth
   publicOrigin: ""
-  # Список email администраторов QMNetwork (JWT is_admin, вход в QMAdmin через QMNetwork). Пусто — не задавать ключ в ConfigMap.
-  adminEmails: ""
   resources:
     requests:
       cpu: 25m

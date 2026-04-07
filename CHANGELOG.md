@@ -1,3 +1,10 @@
+# [1.9.23](https://github.com/mindevis/QMDeploy/compare/v1.9.22...v1.9.23) (2026-04-07)
+
+
+### Removed
+
+* **helm:** **`qmnetwork.adminEmails`** и ключ **`QMNETWORK_ADMIN_EMAILS`** из ConfigMap **qmnetwork** — админов Cloud назначайте через консоль QMServer (**`user edit`**, **`user set-primary`**).
+
 # [1.9.22](https://github.com/mindevis/QMDeploy/compare/v1.9.21...v1.9.22) (2026-04-07)
 
 
