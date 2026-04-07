@@ -14,7 +14,7 @@ Names: qmserver, qmadmin, qmweb, qmdocs
 {{- end }}
 
 {{/*
-imagePullPolicy: rolling tags like :latest / :free-latest must use Always or kubelet keeps stale layers.
+imagePullPolicy: rolling tags like :latest must use Always or kubelet keeps stale layers.
 */}}
 {{- define "qm.imagePullPolicy" -}}
 {{- $img := . -}}

@@ -12,8 +12,7 @@ Application на чарт qm-project из Git (values-argocd.yaml). Монито
 
 Legacy: --direct-helm — прежний helm upgrade --install qm; все оставшиеся аргументы передаются в helm.
 
-Greenfield (чистый сервер): одна команда — K3s, Helm, при необходимости секреты qm-mysql/qm-app
-(**--cloud-license-key-file** или **--cloud-license-key**), **ghcr-credentials** из **`/root/.ghcr-credentials`**
+Greenfield (чистый сервер): одна команда — K3s, Helm, секреты qm-mysql/qm-app, **ghcr-credentials** из **`/root/.ghcr-credentials`**
 (одна строка = PAT, user по умолчанию **mindevis**; см. **--ghcr-username**), затем Argo CD + Application **qm**.
 
 Требуется: Python 3, curl; для GitOps-режима после установки K3s — доступ к API (KUBECONFIG).
@@ -88,11 +87,8 @@ def _install_helm() -> None:
     )
 
 
-def _maybe_greenfield_secrets(args: argparse.Namespace) -> None:
-    """Создаёт qm-mysql / qm-app через k8s-manage secrets, если передан ключ."""
-    if args.cloud_license_key_file is None and args.cloud_license_key is None:
-        return
-
+def _ensure_greenfield_secrets(args: argparse.Namespace) -> None:
+    """Создаёт qm-mysql / qm-app через k8s-manage secrets (идемпотентно, если секреты уже есть)."""
     from k8s_manage.secrets import main as secrets_main
 
     forward: list[str] = [
@@ -103,20 +99,8 @@ def _maybe_greenfield_secrets(args: argparse.Namespace) -> None:
         "--mysql-database",
         args.mysql_database,
     ]
-    if args.cloud_license_key_file is not None:
-        forward.extend(["--cloud-license-key-file", str(args.cloud_license_key_file)])
-    else:
-        forward.extend(["--cloud-license-key", args.cloud_license_key])
-    if args.cloud_license_ips:
-        forward.extend(["--cloud-license-ips", args.cloud_license_ips])
-    if args.cloud_license_machine_ids:
-        forward.extend(["--cloud-license-machine-ids", args.cloud_license_machine_ids])
-    if args.cloud_license_node_names:
-        forward.extend(["--cloud-license-node-names", args.cloud_license_node_names])
     if args.recreate_secrets:
         forward.append("--force")
-    if args.no_scrub_history:
-        forward.append("--no-scrub-history")
     if args.dry_run:
         forward.append("--dry-run")
     print("Greenfield: qm-mysql + qm-app (secrets) …", flush=True)
@@ -151,7 +135,7 @@ def _warn_missing_secrets(namespace: str) -> None:
         helper = K8S_MANAGE
         print(
             f"WARNING: secret qm-mysql not in namespace {namespace!r}. "
-            f"Create secrets first, e.g.: python3 {helper} secrets -n {namespace} --cloud-license-key-file …\n"
+            f"Create secrets first, e.g.: python3 {helper} secrets -n {namespace}\n"
             f"(suppress: SKIP_SECRET_CHECK=1)",
             file=sys.stderr,
         )
@@ -253,20 +237,6 @@ def main(argv: list[str] | None = None) -> None:
         default=os.environ.get("NAMESPACE", "qm"),
         help="Namespace where qm chart is deployed",
     )
-    lic = p.add_mutually_exclusive_group()
-    lic.add_argument(
-        "--cloud-license-key",
-        default=None,
-        metavar="KEY",
-        help="QMServer Cloud license — создать qm-mysql/qm-app перед Argo (как k8s-manage secrets)",
-    )
-    lic.add_argument(
-        "--cloud-license-key-file",
-        type=Path,
-        default=None,
-        metavar="PATH",
-        help="Файл с лицензией (предпочтительно на чистом сервере)",
-    )
     p.add_argument(
         "--mysql-user",
         default="qmuser",
@@ -278,32 +248,9 @@ def main(argv: list[str] | None = None) -> None:
         help="Имя основной БД QMServer в секретах (как k8s-manage secrets)",
     )
     p.add_argument(
-        "--cloud-license-ips",
-        default="",
-        metavar="IPS",
-        help="Опционально: привязка лицензии, IP через запятую",
-    )
-    p.add_argument(
-        "--cloud-license-machine-ids",
-        default="",
-        metavar="IDS",
-        help="Опционально: machine-id через запятую",
-    )
-    p.add_argument(
-        "--cloud-license-node-names",
-        default="",
-        metavar="NAMES",
-        help="Опционально: имена нод Kubernetes через запятую",
-    )
-    p.add_argument(
         "--recreate-secrets",
         action="store_true",
         help="Пересоздать Secrets (как k8s-manage secrets --force)",
-    )
-    p.add_argument(
-        "--no-scrub-history",
-        action="store_true",
-        help="Не чистить history при --cloud-license-key (см. k8s-manage secrets)",
     )
     p.add_argument(
         "--ghcr-credentials-file",
@@ -347,7 +294,7 @@ def main(argv: list[str] | None = None) -> None:
             print("ERROR: unexpected arguments:", unknown, file=sys.stderr)
             sys.exit(1)
         print("DRY-RUN: preview only — K3s/Helm not installed, cluster not modified by this pass.\n", flush=True)
-        _maybe_greenfield_secrets(args)
+        _ensure_greenfield_secrets(args)
         _maybe_ghcr_credentials(args)
         if args.skip_argocd:
             print(
@@ -366,7 +313,7 @@ def main(argv: list[str] | None = None) -> None:
             _ensure_kubectl_in_path()
         if "KUBECONFIG" not in os.environ:
             os.environ["KUBECONFIG"] = "/etc/rancher/k3s/k3s.yaml"
-        _maybe_greenfield_secrets(args)
+        _ensure_greenfield_secrets(args)
         _maybe_ghcr_credentials(args)
         namespace = os.environ.get("NAMESPACE", "qm")
         release = os.environ.get("RELEASE_NAME", "qm")
@@ -397,7 +344,7 @@ def main(argv: list[str] | None = None) -> None:
     if "KUBECONFIG" not in os.environ:
         os.environ["KUBECONFIG"] = "/etc/rancher/k3s/k3s.yaml"
 
-    _maybe_greenfield_secrets(args)
+    _ensure_greenfield_secrets(args)
     _maybe_ghcr_credentials(args)
     _warn_missing_secrets(args.qm_namespace)
 

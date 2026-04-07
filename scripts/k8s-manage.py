@@ -7,15 +7,15 @@ QMDeploy — единая точка входа для K3s / Helm / Argo CD / с
 Подкоманды (можно опустить **bootstrap** — команды с флагом вида **--...** сразу идут в bootstrap):
 
   bootstrap   K3s, Helm, опционально greenfield-secrets, Argo + Application **qm**.
-  secrets     Только **qm-mysql** / **qm-app** (**--dry-run**, ключ лицензии …).
+  secrets     Только **qm-mysql** / **qm-app** (**--dry-run**, **--force**).
   addons      **--argocd**, **--s3**, деинсталляции и т.д.
   reset-k3s   Полное удаление стека в кластере, деинсталляция K3s, кэша **/opt/qm**, перезагрузка ОС (**root**).
 
 Примеры:
 
-  python3 scripts/k8s-manage.py --cloud-license-key-file /root/.qm-cloud-license
+  python3 scripts/k8s-manage.py
   python3 scripts/k8s-manage.py bootstrap --help
-  python3 scripts/k8s-manage.py secrets --cloud-license-key-file /root/.lic --dry-run
+  python3 scripts/k8s-manage.py secrets -n qm --dry-run
   python3 scripts/k8s-manage.py addons --argocd --s3
   python3 scripts/k8s-manage.py addons --grafana
   python3 scripts/k8s-manage.py addons --phpmyadmin
