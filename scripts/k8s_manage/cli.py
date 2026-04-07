@@ -26,6 +26,7 @@ def _print_top_help() -> None:
   python3 scripts/{prog} [bootstrap] [args …]   # по умолчанию; см. bootstrap --help
   python3 scripts/{prog} secrets [args …]      # greenfield Secrets qm-mysql / qm-app
   python3 scripts/{prog} addons [args …]       # Argo CD / MinIO и т.д.
+  python3 scripts/{prog} reset-k3s [args …]    # полный снос K3s + перезагрузка (root)
   python3 scripts/{prog} --version
 
 Greenfield (чистый сервер), один проход:
@@ -59,6 +60,11 @@ def main() -> int:
         return 0
     if head == "addons":
         addons_main(tail if tail else None)
+        return 0
+    if head == "reset-k3s":
+        from k8s_manage.reset_k3s import main as reset_k3s_main
+
+        reset_k3s_main(tail if tail else None)
         return 0
 
     bootstrap_main(argv)
