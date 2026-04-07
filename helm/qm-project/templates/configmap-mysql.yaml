@@ -1,5 +1,3 @@
-{{- $mysql := .Values.mysql | default dict }}
-{{- $qmnDb := $mysql.qmnetworkDatabase | default "qmnetwork" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -42,7 +40,3 @@ data:
       deleted_at TIMESTAMP NULL,
       INDEX idx_servers_deleted_at (deleted_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-  100-qmnetwork.sql: |
-    CREATE DATABASE IF NOT EXISTS `{{ $qmnDb }}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-    GRANT ALL PRIVILEGES ON `{{ $qmnDb }}`.* TO 'qmuser'@'%';
-    FLUSH PRIVILEGES;

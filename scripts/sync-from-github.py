@@ -23,7 +23,6 @@ HELM_BUNDLE_FILES = [
     "qm-project/templates/configmap-qmserver.yaml",
     "qm-project/templates/deployment-qmadmin.yaml",
     "qm-project/templates/deployment-qmdocs.yaml",
-    "qm-project/templates/deployment-qmnetwork.yaml",
     "qm-project/templates/deployment-qmserver.yaml",
     "qm-project/templates/deployment-qmweb.yaml",
     "qm-project/templates/ingress.yaml",

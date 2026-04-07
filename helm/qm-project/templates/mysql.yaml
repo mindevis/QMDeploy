@@ -79,9 +79,6 @@ spec:
             - name: mysql-extra
               mountPath: /docker-entrypoint-initdb.d/99-qmserver-schema.sql
               subPath: 99-qmserver-schema.sql
-            - name: mysql-extra
-              mountPath: /docker-entrypoint-initdb.d/100-qmnetwork.sql
-              subPath: 100-qmnetwork.sql
           livenessProbe:
             exec:
               command:
@@ -111,8 +108,6 @@ spec:
                 path: mysql.cnf
               - key: 99-qmserver-schema.sql
                 path: 99-qmserver-schema.sql
-              - key: 100-qmnetwork.sql
-                path: 100-qmnetwork.sql
   volumeClaimTemplates:
     - metadata:
         name: data

@@ -1,6 +1,6 @@
 {{/*
 Full container image: ghcr.io/<owner>/<name>:<tag> or images.<name> override.
-Names: qmserver, qmadmin, qmweb, qmdocs, qmnetwork, qmsecret
+Names: qmserver, qmadmin, qmweb, qmdocs, qmsecret
 */}}
 {{- define "qm.image" -}}
 {{- $root := index . 0 -}}
@@ -47,26 +47,16 @@ app.kubernetes.io/part-of: qm-project
 {{- end }}
 
 {{/*
-Defaults for qmnetwork when .Values.qmnetwork is missing (e.g. helm upgrade --reuse-values after chart added qmnetwork).
-*/}}
-{{- define "qm.qmnetwork.defaultResources" -}}
-requests:
-  cpu: 25m
-  memory: 32Mi
-limits:
-  cpu: 500m
-  memory: 256Mi
-{{- end }}
-
-{{/*
-Пароль SMTP AUTH для relay/QMNetwork (без user:).
-Приоритет: ключ QMNETWORK_SMTP_PASSWORD в smtp-relay-auth → разбор SMTP_RELAY_USERS → smtpRelayUsersPlain → sha256(release|ns|email) первые 32 hex.
+Пароль SMTP AUTH для relay (без user:).
+Приоритет: SMTP_RELAY_PASSWORD в smtp-relay-auth → legacy QMNETWORK_SMTP_PASSWORD (совместимость) → разбор SMTP_RELAY_USERS → smtpRelayUsersPlain → sha256.
 */}}
 {{- define "qm.smtpRelayPasswordPlain" -}}
 {{- $email := .Values.smtpRelay.relayUserEmail | default "noreply@qx-dev.ru" -}}
 {{- $ns := .Release.Namespace -}}
 {{- $sec := lookup "v1" "Secret" $ns "smtp-relay-auth" -}}
-{{- if and $sec (index $sec.data "QMNETWORK_SMTP_PASSWORD") -}}
+{{- if and $sec (index $sec.data "SMTP_RELAY_PASSWORD") -}}
+{{- index $sec.data "SMTP_RELAY_PASSWORD" | b64dec -}}
+{{- else if and $sec (index $sec.data "QMNETWORK_SMTP_PASSWORD") -}}
 {{- index $sec.data "QMNETWORK_SMTP_PASSWORD" | b64dec -}}
 {{- else if and $sec (index $sec.data "SMTP_RELAY_USERS") -}}
 {{- $line := index $sec.data "SMTP_RELAY_USERS" | b64dec | trim -}}

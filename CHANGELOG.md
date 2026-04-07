@@ -1,3 +1,11 @@
+# [1.9.37](https://github.com/mindevis/QMDeploy/compare/v1.9.36...v1.9.37) (2026-04-07)
+
+
+### Removed
+
+* **Helm `qm-project`:** сервис **QMNetwork** (Deployment/ConfigMap, `values.qmnetwork`, хост `ingress.hosts.auth`, init MySQL для БД **qmnetwork**), переменные **`QMNETWORK_*`** у QMServer; **GitOps** `values-argocd` без образа **qmnetwork**. **Redis** в values остаётся опциональным общим компонентом.
+* **Скрипты:** **`sync-from-github`** не тянет удалённый шаблон; **`bump-qmdeploy-helm-image`** / workflow — без сервиса **qmnetwork**; **`secrets`** — маскирование без **`QMNETWORK_INTERNAL_SECRET`**.
+
 # [1.9.36](https://github.com/mindevis/QMDeploy/compare/v1.9.35...v1.9.36) (2026-04-07)
 
 
