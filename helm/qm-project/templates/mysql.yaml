@@ -71,8 +71,10 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/mysql
+            # Percona image: только /etc/my.cnf.d/ (см. !includedir в /etc/my.cnf). Путь /etc/mysql/conf.d —
+            # у образа mysql:8 official; там конфиг бы не подхватился и mysqlx=0 из ConfigMap не работал бы.
             - name: mysql-extra
-              mountPath: /etc/mysql/conf.d/z-qm.cnf
+              mountPath: /etc/my.cnf.d/z-qm.cnf
               subPath: mysql.cnf
             - name: mysql-extra
               mountPath: /docker-entrypoint-initdb.d/99-qmserver-schema.sql

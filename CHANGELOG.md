@@ -1,3 +1,10 @@
+# [1.9.18](https://github.com/mindevis/QMDeploy/compare/v1.9.17...v1.9.18) (2026-04-07)
+
+
+### Bug Fixes
+
+* **helm (mysql):** монтирование **`mysql.cnf`** в **`/etc/my.cnf.d/z-qm.cnf`** (Percona читает **`/etc/my.cnf.d`**, а не **`/etc/mysql/conf.d`** как образ `mysql:8`). Раньше весь drop-in из ConfigMap не подключался — не действовали **`mysqlx=0`** и прочие опции **`[mysqld]`**.
+
 # [1.9.17](https://github.com/mindevis/QMDeploy/compare/v1.9.16...v1.9.17) (2026-04-07)
 
 

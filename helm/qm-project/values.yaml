@@ -57,6 +57,7 @@ ingress:
 
 mysql:
   image: percona/percona-server:8.0
+  # z-qm.cnf из ConfigMap mysql-config: для Percona путь drop-in — /etc/my.cnf.d/ (не /etc/mysql/conf.d).
   # Имя БД QMNetwork в init (должно совпадать с QMNETWORK_MYSQL_DSN / --qmnetwork-database при greenfield)
   qmnetworkDatabase: qmnetwork
   storage: 20Gi
