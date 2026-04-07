@@ -1,3 +1,14 @@
+# [1.9.7](https://github.com/mindevis/QMDeploy/compare/v1.9.6...v1.9.7) (2026-04-07)
+
+
+### Features
+
+* **scripts:** `create-greenfield-secrets.py` — **`--cloud-license-key-file`**; after **`--cloud-license-key`** scrubs matching line from shell history files (`HISTFILE`, `~/.bash_history`, `~/.zsh_history`); **`--no-scrub-history`** / **`QM_NO_SCRUB_HISTORY`**.
+
+### Documentation
+
+* **readme / QMDocs:** recommend license file; **history -d -1** for in-memory bash history.
+
 # [1.9.6](https://github.com/mindevis/QMDeploy/compare/v1.9.5...v1.9.6) (2026-04-07)
 
 
