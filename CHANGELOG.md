@@ -1,3 +1,10 @@
+# [1.9.31](https://github.com/mindevis/QMDeploy/compare/v1.9.30...v1.9.31) (2026-04-07)
+
+
+### Changed
+
+* **helm / qmnetwork:** **`command: ["/qmnetwork", "--server"]`** — единый бинарник QMNetwork v1.1.20+ (без отдельного **`authd`**).
+
 # [1.9.30](https://github.com/mindevis/QMDeploy/compare/v1.9.29...v1.9.30) (2026-04-07)
 
 
