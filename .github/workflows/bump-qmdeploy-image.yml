@@ -40,25 +40,35 @@ jobs:
       - name: Install script deps
         run: pip install -r scripts/requirements-gitops.txt
 
-      - name: Patch helm/qm-project/values-argocd.yaml
-        run: >-
-          python3 scripts/bump-qmdeploy-helm-image.py
-          --service "${{ inputs.service }}"
-          --image-ref "${{ inputs.image_ref }}"
-
-      - name: Commit and push
+      - name: Patch values and push (retry on concurrent bumps)
         env:
           SERVICE: ${{ inputs.service }}
           REF: ${{ inputs.image_ref }}
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add helm/qm-project/values-argocd.yaml
-          if git diff --cached --quiet; then
-            echo "Нет изменений (тот же image ref) — пропуск push."
-            exit 0
-          fi
-          git commit -m "chore(gitops): imageTag latest (${SERVICE} build ${REF})"
-          # Remote may be ahead (another image bump or manual edit); rebase then push.
-          git pull --rebase origin main
-          git push
+          # Несколько репозиториев могут одновременно бампнуть values-argocd.yaml.
+          # Rebase старого коммита даёт конфликт; вместо этого каждый раз берём origin/main
+          # и заново применяем bump-qmdeploy-helm-image.py, затем push.
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python3 scripts/bump-qmdeploy-helm-image.py \
+              --service "${SERVICE}" \
+              --image-ref "${REF}"
+            git add helm/qm-project/values-argocd.yaml
+            if git diff --cached --quiet; then
+              echo "Нет изменений (уже актуальный image ref) — пропуск push."
+              exit 0
+            fi
+            git commit -m "chore(gitops): imageTag latest (${SERVICE} build ${REF})"
+            if git push origin HEAD:main; then
+              echo "Push OK."
+              exit 0
+            fi
+            echo "Push отклонён (attempt ${attempt}/5), повтор…"
+            sleep $((attempt * 4))
+          done
+          echo "Push не удался после 5 попыток." >&2
+          exit 1

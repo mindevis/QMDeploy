@@ -1,3 +1,10 @@
+# [1.9.2](https://github.com/mindevis/QMDeploy/compare/v1.9.1...v1.9.2) (2026-04-07)
+
+
+### Bug Fixes
+
+* **ci:** bump workflow — fetch/reset main and re-run YAML bump before each push (with retries) to avoid merge conflicts when several services update `values-argocd.yaml` at once.
+
 # [1.9.1](https://github.com/mindevis/QMDeploy/compare/v1.9.0...v1.9.1) (2026-04-07)
 
 
