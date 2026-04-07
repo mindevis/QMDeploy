@@ -118,6 +118,23 @@ python3 scripts/k8s-manage.py addons --uninstall-s3
 python3 scripts/k8s-manage.py addons --uninstall-argocd --uninstall-s3
 ```
 
+### Полный сброс ноды: кластер K3s, данные и перезагрузка
+
+Чтобы **полностью убрать** пользовательские namespace и релизы, **деинсталлировать K3s**, удалить кэш **`/opt/qm`** (если был `sync-from-github`) и **перезагрузить сервер** без переустановки ОС:
+
+```bash
+cd QMDeploy   # или python3 /opt/qm/scripts/k8s-manage.py …
+python3 scripts/k8s-manage.py reset-k3s --yes
+```
+
+Справка и опции (**`--dry-run`**, **`--no-reboot`**, **`--keep-opt-qm`**, worker: **`--agent`**):
+
+```bash
+python3 scripts/k8s-manage.py reset-k3s --help
+```
+
+**Только root.** Лицензии и **`/root/.ghcr-credentials`** скрипт **не удаляет**. После reboot снова выполните **`k8s-manage.py bootstrap`** (или полный вызов с ключом Cloud). На **worker-нодах** (агент K3s): **`reset-k3s --agent --yes`**.
+
 **Argo CD:** по умолчанию UI на **`https://k3s.qx-dev.ru`** (Ingress, класс **traefik**, как у чарта **`qm-project`**; значения — **`helm/argocd/values-k3s.yaml`**). Другой хост: **`--argocd-host`** у **`k8s-manage.py`** / **`k8s-manage.py addons`**. В DNS добавьте A-запись **`k3s.qx-dev.ru`** на IP ноды (или LB). После установки **`bootstrap`** / **`addons --argocd`** скрипт сразу печатает **URL** (`https://<хост>/`), **логин `admin`** и **начальный пароль** из Secret **`argocd-initial-admin-secret`** (если чтение не удалось — команда **`kubectl`** для ручного декодирования).
 
 При установке Argo CD создаётся **Application `qm`** (`kubectl apply` из шаблона **`helm/argocd/applications/qm-project.application.yaml.tpl`**): в UI виден **QM Project** (чарт **`helm/qm-project`**, values **`values-argocd.yaml`**). Источник в Git: **`--qm-repo-url`**, ревизия **`--qm-repo-revision`**. Чтобы не регистрировать приложение (только Argo CD): **`--argocd-skip-qm-app`**.

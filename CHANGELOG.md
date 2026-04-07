@@ -1,3 +1,10 @@
+# [1.9.33](https://github.com/mindevis/QMDeploy/compare/v1.9.32...v1.9.33) (2026-04-07)
+
+
+### Added
+
+* **k8s-manage.py reset-k3s:** поэтапное удаление стека (Argo / MinIO / `helm uninstall -A` / пользовательские namespace), **`k3s-killall.sh`**, **`k3s-uninstall.sh`** (или **`k3s-agent-uninstall.sh`** с **`--agent`**), удаление **`/opt/qm`**, перезагрузка **`systemctl reboot`**; флаги **`--dry-run`**, **`--no-reboot`**, **`--keep-opt-qm`**.
+
 # [1.9.32](https://github.com/mindevis/QMDeploy/compare/v1.9.31...v1.9.32) (2026-04-07)
 
 

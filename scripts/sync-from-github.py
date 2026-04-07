@@ -44,6 +44,7 @@ DEPLOY_PYTHON_SCRIPTS = [
     "scripts/k8s_manage/secrets.py",
     "scripts/k8s_manage/ghcr_credentials.py",
     "scripts/k8s_manage/addons.py",
+    "scripts/k8s_manage/reset_k3s.py",
 ]
 
 DEFAULT_HELM_BASE_URL = (
