@@ -1,3 +1,14 @@
+# [1.9.6](https://github.com/mindevis/QMDeploy/compare/v1.9.5...v1.9.6) (2026-04-07)
+
+
+### Features
+
+* **scripts:** `create-greenfield-secrets.py` — license/bindings **only via CLI** (`--cloud-license-key`, etc.); **`--dry-run`** prints a masked preview without cluster changes.
+
+### Documentation
+
+* **readme / QMDocs:** examples without `export`; document `--dry-run`.
+
 # [1.9.5](https://github.com/mindevis/QMDeploy/compare/v1.9.4...v1.9.5) (2026-04-07)
 
 
