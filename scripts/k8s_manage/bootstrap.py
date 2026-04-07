@@ -110,6 +110,8 @@ def _maybe_greenfield_secrets(args: argparse.Namespace) -> None:
         forward.append("--force")
     if args.no_scrub_history:
         forward.append("--no-scrub-history")
+    if args.dry_run:
+        forward.append("--dry-run")
     print("Greenfield: qm-mysql + qm-app (secrets) …", flush=True)
     secrets_main(forward)
 
@@ -124,6 +126,7 @@ def _maybe_ghcr_credentials(args: argparse.Namespace) -> None:
         default_username=user_default,
         skip=args.skip_ghcr_credentials,
         force=args.recreate_ghcr_credentials,
+        dry_run=args.dry_run,
     )
 
 
@@ -168,6 +171,8 @@ def _run_gitops_bootstrap(ns: argparse.Namespace) -> None:
     kc = os.environ.get("KUBECONFIG")
     if kc:
         forward.extend(["--kubeconfig", kc])
+    if ns.dry_run:
+        forward.append("--dry-run")
     print("GitOps: Argo CD + Application qm …", flush=True)
     addons_main(forward)
     print(
@@ -177,7 +182,7 @@ def _run_gitops_bootstrap(ns: argparse.Namespace) -> None:
     )
 
 
-def _direct_helm_upgrade(namespace: str, release: str, helm_extra: list[str]) -> None:
+def _direct_helm_upgrade(namespace: str, release: str, helm_extra: list[str], dry_run: bool = False) -> None:
     _warn_missing_secrets(namespace)
     cmd = [
         "helm",
@@ -190,8 +195,13 @@ def _direct_helm_upgrade(namespace: str, release: str, helm_extra: list[str]) ->
         "--create-namespace",
         *helm_extra,
     ]
+    if dry_run:
+        cmd.append("--dry-run")
     subprocess.run(cmd, check=True)
-    print(f"OK: helm release {release} (namespace {namespace})", flush=True)
+    msg = f"OK: helm release {release} (namespace {namespace})"
+    if dry_run:
+        msg += " (helm --dry-run)"
+    print(msg, flush=True)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -301,6 +311,11 @@ def main(argv: list[str] | None = None) -> None:
         action="store_true",
         help="Удалить существующий ghcr-credentials в namespace и создать заново",
     )
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Предпросмотр без установки K3s/Helm и без изменений кластера: secrets dry-run, GHCR и Argo шаги в режиме DRY-RUN",
+    )
     if argv is None:
         args, unknown = p.parse_known_args()
     else:
@@ -309,6 +324,22 @@ def main(argv: list[str] | None = None) -> None:
     if not (CHART / "Chart.yaml").is_file():
         print(f"ERROR: chart not found: {CHART / 'Chart.yaml'}", file=sys.stderr)
         sys.exit(1)
+
+    if args.dry_run and not args.direct_helm:
+        if unknown:
+            print("ERROR: unexpected arguments:", unknown, file=sys.stderr)
+            sys.exit(1)
+        print("DRY-RUN: preview only — K3s/Helm not installed, cluster not modified by this pass.\n", flush=True)
+        _maybe_greenfield_secrets(args)
+        _maybe_ghcr_credentials(args)
+        if args.skip_argocd:
+            print(
+                "DRY-RUN: --skip-argocd — в реальном запуске дальше были бы K3s/Helm; здесь не имитируется.",
+                flush=True,
+            )
+            return
+        _run_gitops_bootstrap(args)
+        return
 
     if args.direct_helm:
         if not shutil.which("helm"):
@@ -322,7 +353,7 @@ def main(argv: list[str] | None = None) -> None:
         _maybe_ghcr_credentials(args)
         namespace = os.environ.get("NAMESPACE", "qm")
         release = os.environ.get("RELEASE_NAME", "qm")
-        _direct_helm_upgrade(namespace, release, unknown)
+        _direct_helm_upgrade(namespace, release, unknown, dry_run=args.dry_run)
         return
 
     if unknown:
