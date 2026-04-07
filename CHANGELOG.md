@@ -1,3 +1,11 @@
+# [1.9.15](https://github.com/mindevis/QMDeploy/compare/v1.9.14...v1.9.15) (2026-04-07)
+
+
+### Features
+
+* **scripts:** **`--qmnetwork-database`** on **secrets** and **bootstrap** — имя БД в **`QMNETWORK_MYSQL_DSN`** (default **qmnetwork**).
+* **helm:** **`mysql.qmnetworkDatabase`** — имя БД в init **`100-qmnetwork.sql`** (согласуйте с **`--qmnetwork-database`**).
+
 # [1.9.14](https://github.com/mindevis/QMDeploy/compare/v1.9.13...v1.9.14) (2026-04-07)
 
 
