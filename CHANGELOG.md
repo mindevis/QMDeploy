@@ -1,3 +1,10 @@
+# [1.9.22](https://github.com/mindevis/QMDeploy/compare/v1.9.21...v1.9.22) (2026-04-07)
+
+
+### Changed
+
+* **GitOps:** **`imageRevisions.qmnetwork`** → **1.1.8** (QMNetwork: исправление миграции **`004_registration_policy`**).
+
 # [1.9.21](https://github.com/mindevis/QMDeploy/compare/v1.9.20...v1.9.21) (2026-04-07)
 
 
