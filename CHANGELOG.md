@@ -1,3 +1,10 @@
+# [1.9.24](https://github.com/mindevis/QMDeploy/compare/v1.9.23...v1.9.24) (2026-04-07)
+
+
+### Changed
+
+* **GitOps:** **`imageRevisions`** — **QMServer** **f851018** (**v1.5.1**, **`POST /admin/users`**), **QMAdmin** **402198b** (**v1.4.1**, создание пользователя в UI).
+
 # [1.9.23](https://github.com/mindevis/QMDeploy/compare/v1.9.22...v1.9.23) (2026-04-07)
 
 
