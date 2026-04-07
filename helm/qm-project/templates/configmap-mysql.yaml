@@ -22,7 +22,8 @@ data:
     init_connect = 'SET NAMES utf8mb4'
     sql_mode = STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
     innodb_buffer_pool_size = 256M
-    innodb_log_file_size = 64M
+    # 8.0.30+: вместо innodb_log_file_size / innodb_log_files_in_group (MY-013907)
+    innodb_redo_log_capacity = 134217728
     max_connections = 200
     general_log = 0
     slow_query_log = 1

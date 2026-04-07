@@ -1,3 +1,10 @@
+# [1.9.19](https://github.com/mindevis/QMDeploy/compare/v1.9.18...v1.9.19) (2026-04-07)
+
+
+### Changed
+
+* **helm (mysql):** **`innodb_log_file_size`** заменён на **`innodb_redo_log_capacity`** (128 MiB) — убирает предупреждение **MY-013907** в MySQL/Percona 8.0.30+.
+
 # [1.9.18](https://github.com/mindevis/QMDeploy/compare/v1.9.17...v1.9.18) (2026-04-07)
 
 
