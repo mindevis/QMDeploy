@@ -1,3 +1,10 @@
+# [1.9.36](https://github.com/mindevis/QMDeploy/compare/v1.9.35...v1.9.36) (2026-04-07)
+
+
+### Fixed
+
+* **CI:** **`bump-qmdeploy-image.yml`** — секрет **`QMDEPLOY_BUMP_TOKEN`** необязателен; если не задан, шаг bump пропускается (**notice**), workflow вызывающего репозитория не падает после успешной сборки образа.
+
 # [1.9.35](https://github.com/mindevis/QMDeploy/compare/v1.9.34...v1.9.35) (2026-04-07)
 
 

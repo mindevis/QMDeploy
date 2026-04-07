@@ -155,7 +155,9 @@ python3 scripts/k8s-manage.py reset-k3s --help
 2. Сначала **смёржите и опубликуйте** ветку **`main`** репозитория **QMDeploy**, в которой есть этот workflow — иначе job **`bump-qmdeploy`** упадёт с ошибкой «workflow not found».
 3. При необходимости закрепите версию workflow: вместо **`@main`** в workflow приложения укажите тег **`@vX.Y.Z`** (после релиза QMDeploy).
 
-**Если коммита в QMDeploy нет:** в Actions откройте последний run workflow сборки образа — job **`bump-qmdeploy`** не должен быть **Skipped**. Раньше он не запускался при ручном **Run workflow** (`workflow_dispatch`); сейчас условие это учитывает. Проверьте: **push в `main`** или тег **`v*`**, секрет **`QMDEPLOY_BUMP_TOKEN`** в этом репозитории, на **`main`** в QMDeploy уже лежит **`bump-qmdeploy-image.yml`**. Если в логе bump: «Нет изменений» — **`values-argocd.yaml`** уже в состоянии **`imageTag: latest`** и пустых **`images.*`**. У **GitHub Enterprise** PAT может требовать **Authorize SSO** для организации.
+**Без секрета **`QMDEPLOY_BUMP_TOKEN`**:** job **`bump-qmdeploy`** завершается **успешно** (GitHub **notice**), общий workflow остаётся зелёным — пуш образа в GHCR не блокируется; автокоммит в QMDeploy просто не выполняется.
+
+**Если коммита в QMDeploy нет:** в Actions откройте последний run workflow сборки образа. Проверьте: **push в `main`** или тег **`v*`**, при необходимости секрет **`QMDEPLOY_BUMP_TOKEN`**, на **`main`** в QMDeploy уже лежит **`bump-qmdeploy-image.yml`**. Если в логе bump: «Нет изменений» — **`values-argocd.yaml`** уже в нужном состоянии. **Красный крест** чаще из‑за падающего **build-and-push** (Docker/npm/go), из‑за **истёкшего PAT** при `git push` в QMDeploy или из‑за ошибки «workflow not found» (ветка **`main`** в QMDeploy без этого workflow). У **GitHub Enterprise** PAT может требовать **Authorize SSO** для организации.
 
 Образы **QMClient** / **QMLauncher** в чарт **`qm-project`** не входят — отдельного bump нет.
 

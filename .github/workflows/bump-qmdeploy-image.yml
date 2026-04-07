@@ -1,5 +1,6 @@
 # Вызывается из CI репозиториев приложений после push образа в GHCR.
 # Секрет QMDEPLOY_BUMP_TOKEN: PAT с правом push в репозиторий QMDeploy (contents: write).
+# Если секрет не задан, job завершается успешно (notice) — общий workflow остаётся зелёным.
 
 name: Bump QMDeploy Helm image (GitOps)
 
@@ -21,26 +22,42 @@ on:
     secrets:
       QMDEPLOY_BUMP_TOKEN:
         description: PAT для push в QMDeploy
-        required: true
+        required: false
 
 jobs:
   bump:
     runs-on: ubuntu-latest
     steps:
+      - name: Проверка PAT (без секрета — пропуск)
+        id: gate
+        env:
+          PAT: ${{ secrets.QMDEPLOY_BUMP_TOKEN }}
+        run: |
+          if [ -z "${PAT}" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::QMDEPLOY_BUMP_TOKEN не задан — bump QMDeploy пропущен. Сборка образа уже успешна; для автопатча values-argocd.yaml добавьте секрет в репозиторий или организацию (contents: write на QMDeploy)."
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.run == 'true'
         with:
           repository: ${{ inputs.qmdeploy_repository }}
           token: ${{ secrets.QMDEPLOY_BUMP_TOKEN }}
           ref: main
 
       - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == 'true'
         with:
           python-version: "3.12"
 
       - name: Install script deps
+        if: steps.gate.outputs.run == 'true'
         run: pip install -r scripts/requirements-gitops.txt
 
       - name: Patch values and push (retry on concurrent bumps)
+        if: steps.gate.outputs.run == 'true'
         env:
           SERVICE: ${{ inputs.service }}
           REF: ${{ inputs.image_ref }}
