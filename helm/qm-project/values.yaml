@@ -106,6 +106,8 @@ qmserver:
     # Пусто + smtpRelay.enabled → QMNETWORK_*: хост smtp-relay, user/from = smtpRelay.relayUserEmail, пароль из Secret smtp-relay-auth.
     # Иначе задайте вручную (внешний SMTP) и положите QMNETWORK_SMTP_PASSWORD в Secret qm-app.
     qmnetworkSmtpHost: ""
+    # Имя в TLS-сертификате SMTP (SNI), если host — smtp-relay, а cert на smtp.example.com. Пусто + smtpRelay → smtpRelay.hostname.
+    qmnetworkSmtpTlsServerName: ""
     qmnetworkSmtpPort: "587"
     qmnetworkSmtpUser: ""
     qmnetworkSmtpFrom: ""

@@ -45,4 +45,11 @@ data:
   QMNETWORK_SMTP_PORT: {{ .Values.qmserver.config.qmnetworkSmtpPort | default "587" | quote }}
   QMNETWORK_SMTP_USER: {{ $smtpUser | quote }}
   QMNETWORK_SMTP_FROM: {{ $smtpFrom | quote }}
+  {{- $tlsName := .Values.qmserver.config.qmnetworkSmtpTlsServerName | default "" | trim }}
+  {{- if and $relay.enabled (eq $smtpHost "smtp-relay") (eq $tlsName "") }}
+  {{- $tlsName = $relay.hostname }}
+  {{- end }}
+  {{- if $tlsName }}
+  QMNETWORK_SMTP_TLS_SERVER_NAME: {{ $tlsName | quote }}
+  {{- end }}
   QMNETWORK_EMAIL_VERIFY_TTL: {{ .Values.qmserver.config.qmnetworkEmailVerifyTTL | default "48h" | quote }}
