@@ -11,7 +11,6 @@ images:
   qmadmin: ""
   qmweb: ""
   qmdocs: ""
-  qmsecret: ""
 
 # Заполняется CI (bump): меняется при новой сборке, чтобы Argo синкнул rollout без пина образа в spec.
 imageRevisions:
@@ -19,7 +18,6 @@ imageRevisions:
   qmadmin: "bd3552d"
   qmweb: "af2a7ff"
   qmdocs: "69a0d0b"
-  qmsecret: "d3a43e1"
 
 # kubectl create secret docker-registry ghcr-credentials -n qm --docker-server=ghcr.io --docker-username=... --docker-password=...
 imagePullSecrets:
@@ -31,7 +29,6 @@ ingress:
     admin: admin.qx-dev.ru
     web: web.qx-dev.ru
     docs: qm.qx-dev.ru
-    key: key.qx-dev.ru
     grafana: monit.qx-dev.ru
     phpmyadmin: pma.qx-dev.ru
 
@@ -39,12 +36,8 @@ ingress:
 phpmyadmin:
   enabled: false
 
-# Включает Deployment/Service/Ingress для QMSecret и Postfix relay (остальные поля — из values.yaml).
-# Обязательно создайте Secret qm-app: QMSECRET_MASTER_KEY, QMSECRET_SERVICE_TOKEN.
+# Postfix relay (остальные поля — из values.yaml).
 # SMTP relay: чарт создаёт smtp-relay-auth (noreply@… + пароль); см. smtpRelay.relayUserEmail в values.yaml.
-qmsecret:
-  enabled: true
-
 smtpRelay:
   enabled: true
 

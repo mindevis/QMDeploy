@@ -1,3 +1,11 @@
+# [1.9.38](https://github.com/mindevis/QMDeploy/compare/v1.9.37...v1.9.38) (2026-04-07)
+
+
+### Removed
+
+* **Helm `qm-project`:** сервис **QMSecret** (Deployment/PVC, `values.qmsecret`, Ingress **`ingress.hosts.key`**, переменные **`QMSECRET_*`** у QMServer). **GitOps** `values-argocd` без образа **qmsecret**.
+* **Скрипты:** **`bump-qmdeploy-helm-image`** / **`bump-qmdeploy-image.yml`** — без сервиса **qmsecret**; **`secrets`** — генерация **`qm-app`** без **`QMSECRET_*`**.
+
 # [1.9.37](https://github.com/mindevis/QMDeploy/compare/v1.9.36...v1.9.37) (2026-04-07)
 
 

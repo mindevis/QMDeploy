@@ -1,8 +1,7 @@
 """
 Создаёт Secret qm-mysql и qm-app для первичного развёртывания в пустом namespace.
 
-qm-app включает ключи **QMServer Cloud** (лицензия) и **QMSecret** (master key + service token),
-как в GitOps-пути (**values-argocd.yaml**: qmsecret.enabled: true).
+qm-app включает ключи **QMServer Cloud** (лицензия) и стандартные секреты приложения (JWT, БД и т.д.).
 
 На сервере K3s выполняйте от root. Обычно: **`k8s-manage.py --cloud-license-key-file …`** (bootstrap);
 вручную: **`k8s-manage.py secrets`**.
@@ -275,8 +274,6 @@ def _run(args: argparse.Namespace, lic: str) -> None:
     db_dsn = f"{dsn_base}{db}?parseTime=true"
     jwt = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
     billing = secrets.token_hex(32)
-    qmsecret_master = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
-    qmsecret_token = secrets.token_urlsafe(32)
 
     mysql_pairs: list[tuple[str, str]] = [
         ("MYSQL_ROOT_PASSWORD", root_pw),
@@ -289,8 +286,6 @@ def _run(args: argparse.Namespace, lic: str) -> None:
         ("JWT_SECRET", jwt),
         ("QMBILLING_ADMIN_SECRET", billing),
         ("QMSERVER_CLOUD_LICENSE_KEY", lic),
-        ("QMSECRET_MASTER_KEY", qmsecret_master),
-        ("QMSECRET_SERVICE_TOKEN", qmsecret_token),
     ]
     ips = (args.cloud_license_ips or "").strip()
     if ips:

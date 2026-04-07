@@ -90,18 +90,6 @@ spec:
                 configMapKeyRef:
                   name: qm-qmserver-config
                   key: APP_NAME
-            {{- if .Values.qmsecret.enabled }}
-            - name: QMSECRET_BASE_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: qm-qmserver-config
-                  key: QMSECRET_BASE_URL
-            - name: QMSECRET_SERVICE_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: qm-app
-                  key: QMSECRET_SERVICE_TOKEN
-            {{- end }}
             - name: DB_DSN
               valueFrom:
                 secretKeyRef:

@@ -10,6 +10,3 @@ data:
   APP_NAME: {{ .Values.qmserver.config.appName | quote }}
   PORT: {{ .Values.qmserver.config.port | quote }}
   GIN_MODE: {{ .Values.qmserver.config.ginMode | quote }}
-  {{- if .Values.qmsecret.enabled }}
-  QMSECRET_BASE_URL: {{ printf "http://qmsecret:%v" (.Values.qmsecret.port | default 9088) | quote }}
-  {{- end }}
