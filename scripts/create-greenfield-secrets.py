@@ -7,8 +7,11 @@ qm-app включает ключи **QMServer Cloud** (лицензия) и **QM
 
 На сервере K3s выполняйте от root (тот же kubeconfig, что и у install-k3s-helm.py).
 
-Нужен доступ к API Kubernetes: **`kubectl`** в PATH либо **`k3s`** (`k3s kubectl`). На пустом сервере
-сначала: **`python3 scripts/install-k3s-helm.py --skip-argocd`**, затем этот скрипт.
+Обычно на чистом сервере секреты создаются через **`install-k3s-helm.py --cloud-license-key-file`**;
+этот скрипт — для **`--dry-run`**, отладки или ручного порядка.
+
+Нужен доступ к API: **`kubectl`** или **`k3s kubectl`**. Если кластера нет, сначала
+**`install-k3s-helm.py`** (с ключом лицензии или **`--skip-argocd`** + повтор с ключом).
 
 Запускайте до полного bootstrap (второй запуск **install-k3s-helm.py** / Argo sync) или после
 **kubectl delete secret** … Повтор без **--force**: ошибка «уже существует».

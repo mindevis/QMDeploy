@@ -1,3 +1,14 @@
+# [1.9.9](https://github.com/mindevis/QMDeploy/compare/v1.9.8...v1.9.9) (2026-04-07)
+
+
+### Features
+
+* **scripts:** `install-k3s-helm.py` — optional **`--cloud-license-key` / `--cloud-license-key-file`** (+ binding flags, **`--recreate-secrets`**, **`--no-scrub-history`**) runs **`create-greenfield-secrets.py`** after K3s+Helm and before Argo — single command on a clean server.
+
+### Documentation
+
+* **readme / QMDocs:** simplify greenfield to one **`install-k3s-helm.py`** flow; **`--skip-argocd`** only for advanced use.
+
 # [1.9.8](https://github.com/mindevis/QMDeploy/compare/v1.9.7...v1.9.8) (2026-04-07)
 
 

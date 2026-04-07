@@ -11,6 +11,10 @@ Application на чарт qm-project из Git (values-argocd.yaml). Монито
 
 Legacy: --direct-helm — прежний helm upgrade --install qm; все оставшиеся аргументы передаются в helm.
 
+Greenfield (чистый сервер): одна команда — K3s, Helm, при необходимости **create-greenfield-secrets**
+(**--cloud-license-key-file** или **--cloud-license-key**), затем Argo CD + Application **qm**.
+Отдельно создайте **ghcr-credentials** в namespace **qm** до/сразу после первого Sync (см. README).
+
 Требуется: Python 3, curl; для GitOps-режима после установки K3s — доступ к API (KUBECONFIG).
 
 Переменные окружения: NAMESPACE (по умолчанию qm), RELEASE_NAME (по умолчанию qm),
@@ -29,6 +33,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CHART = ROOT / "helm" / "qm-project"
 OPTIONAL_ADDONS = ROOT / "scripts" / "install-optional-addons.py"
+GREENFIELD_SECRETS = ROOT / "scripts" / "create-greenfield-secrets.py"
 
 
 def _has_cluster_cli() -> bool:
@@ -81,6 +86,37 @@ def _install_helm() -> None:
         shell=True,
         check=True,
     )
+
+
+def _maybe_greenfield_secrets(args: argparse.Namespace) -> None:
+    """Создаёт qm-mysql / qm-app, если передан ключ (один вызов вместо отдельного скрипта)."""
+    if args.cloud_license_key_file is None and args.cloud_license_key is None:
+        return
+    if not GREENFIELD_SECRETS.is_file():
+        print(f"ERROR: missing {GREENFIELD_SECRETS}", file=sys.stderr)
+        sys.exit(1)
+    cmd = [
+        sys.executable,
+        str(GREENFIELD_SECRETS),
+        "-n",
+        args.qm_namespace,
+    ]
+    if args.cloud_license_key_file is not None:
+        cmd.extend(["--cloud-license-key-file", str(args.cloud_license_key_file)])
+    else:
+        cmd.extend(["--cloud-license-key", args.cloud_license_key])
+    if args.cloud_license_ips:
+        cmd.extend(["--cloud-license-ips", args.cloud_license_ips])
+    if args.cloud_license_machine_ids:
+        cmd.extend(["--cloud-license-machine-ids", args.cloud_license_machine_ids])
+    if args.cloud_license_node_names:
+        cmd.extend(["--cloud-license-node-names", args.cloud_license_node_names])
+    if args.recreate_secrets:
+        cmd.append("--force")
+    if args.no_scrub_history:
+        cmd.append("--no-scrub-history")
+    print("Greenfield: qm-mysql + qm-app (create-greenfield-secrets) …", flush=True)
+    subprocess.run(cmd, check=True)
 
 
 def _warn_missing_secrets(namespace: str) -> None:
@@ -192,6 +228,48 @@ def main() -> None:
         default=os.environ.get("NAMESPACE", "qm"),
         help="Namespace where qm chart is deployed",
     )
+    lic = p.add_mutually_exclusive_group()
+    lic.add_argument(
+        "--cloud-license-key",
+        default=None,
+        metavar="KEY",
+        help="QMServer Cloud license — создать qm-mysql/qm-app перед Argo (как create-greenfield-secrets)",
+    )
+    lic.add_argument(
+        "--cloud-license-key-file",
+        type=Path,
+        default=None,
+        metavar="PATH",
+        help="Файл с лицензией (предпочтительно на чистом сервере)",
+    )
+    p.add_argument(
+        "--cloud-license-ips",
+        default="",
+        metavar="IPS",
+        help="Опционально: привязка лицензии, IP через запятую",
+    )
+    p.add_argument(
+        "--cloud-license-machine-ids",
+        default="",
+        metavar="IDS",
+        help="Опционально: machine-id через запятую",
+    )
+    p.add_argument(
+        "--cloud-license-node-names",
+        default="",
+        metavar="NAMES",
+        help="Опционально: имена нод Kubernetes через запятую",
+    )
+    p.add_argument(
+        "--recreate-secrets",
+        action="store_true",
+        help="Пересоздать Secrets (как create-greenfield-secrets --force)",
+    )
+    p.add_argument(
+        "--no-scrub-history",
+        action="store_true",
+        help="Не чистить history при --cloud-license-key (см. create-greenfield-secrets)",
+    )
     args, unknown = p.parse_known_args()
 
     if not (CHART / "Chart.yaml").is_file():
@@ -206,6 +284,7 @@ def main() -> None:
             _ensure_kubectl_in_path()
         if "KUBECONFIG" not in os.environ:
             os.environ["KUBECONFIG"] = "/etc/rancher/k3s/k3s.yaml"
+        _maybe_greenfield_secrets(args)
         namespace = os.environ.get("NAMESPACE", "qm")
         release = os.environ.get("RELEASE_NAME", "qm")
         _direct_helm_upgrade(namespace, release, unknown)
@@ -239,6 +318,7 @@ def main() -> None:
         print(f"ERROR: missing {OPTIONAL_ADDONS}", file=sys.stderr)
         sys.exit(1)
 
+    _maybe_greenfield_secrets(args)
     _warn_missing_secrets(args.qm_namespace)
 
     if args.skip_argocd:
