@@ -1,3 +1,14 @@
+# [1.9.5](https://github.com/mindevis/QMDeploy/compare/v1.9.4...v1.9.5) (2026-04-07)
+
+
+### Features
+
+* **scripts:** `create-greenfield-secrets.py` — required **QMServer Cloud** license (`--cloud-license-key` / `QMSERVER_CLOUD_LICENSE_KEY`), optional binding env flags; auto-generates **QMSecret** keys in `qm-app` for GitOps defaults.
+
+### Documentation
+
+* **readme:** Greenfield Cloud checklist (license, **ghcr-credentials**, **QMSERVER_CLOUD_K8S**).
+
 # [1.9.4](https://github.com/mindevis/QMDeploy/compare/v1.9.3...v1.9.4) (2026-04-07)
 
 
