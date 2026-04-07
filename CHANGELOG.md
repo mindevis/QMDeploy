@@ -1,3 +1,10 @@
+# [1.9.26](https://github.com/mindevis/QMDeploy/compare/v1.9.25...v1.9.26) (2026-04-07)
+
+
+### Fixed
+
+* **helm:** **`qm.smtpRelayPasswordPlain`** — вместо **`regexFindSubmatch`** (нет в старых Helm из Argo CD) используются **`regexMatch`** и **`regexReplaceAll`** для разбора **`user:password`**.
+
 # [1.9.25](https://github.com/mindevis/QMDeploy/compare/v1.9.24...v1.9.25) (2026-04-07)
 
 

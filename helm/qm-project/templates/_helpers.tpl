@@ -70,9 +70,8 @@ limits:
 {{- index $sec.data "QMNETWORK_SMTP_PASSWORD" | b64dec -}}
 {{- else if and $sec (index $sec.data "SMTP_RELAY_USERS") -}}
 {{- $line := index $sec.data "SMTP_RELAY_USERS" | b64dec | trim -}}
-{{- $m := regexFindSubmatch "^(.+?):(.+)$" $line -}}
-{{- if and $m (ge (len $m) 3) -}}
-{{- index $m 2 -}}
+{{- if regexMatch "^[^:]+:.+$" $line -}}
+{{- regexReplaceAll "^[^:]+:(.+)$" $line "$1" -}}
 {{- else -}}
 {{- $hash := sha256sum (printf "%s|%s|%s" .Release.Name $ns $email) -}}
 {{- trunc 32 $hash -}}
@@ -83,9 +82,8 @@ limits:
 {{- if hasPrefix $prefix $line -}}
 {{- trimPrefix $prefix $line -}}
 {{- else -}}
-{{- $m := regexFindSubmatch "^(.+?):(.+)$" $line -}}
-{{- if and $m (ge (len $m) 3) -}}
-{{- index $m 2 -}}
+{{- if regexMatch "^[^:]+:.+$" $line -}}
+{{- regexReplaceAll "^[^:]+:(.+)$" $line "$1" -}}
 {{- else -}}
 {{- $hash := sha256sum (printf "%s|%s|%s" .Release.Name $ns $email) -}}
 {{- trunc 32 $hash -}}
