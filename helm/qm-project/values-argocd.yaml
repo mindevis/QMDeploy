@@ -45,3 +45,8 @@ qmsecret:
 
 smtpRelay:
   enabled: true
+
+# Grafana / Prometheus / exporters: выключено по умолчанию (поды не создаются).
+# Включите в Git (коммит в QMDeploy) или через параметры Application в Argo CD, затем Sync.
+monitoring:
+  enabled: false

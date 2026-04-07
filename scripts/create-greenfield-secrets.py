@@ -2,7 +2,7 @@
 """
 Создаёт Secret qm-mysql и минимальный qm-app для первичного развёртывания в пустом namespace.
 
-Запускайте до helm install / install-k3s-helm.py на новом кластере или после
+Запускайте до bootstrap (install-k3s-helm.py / Argo sync) на новом кластере или после
 kubectl delete secret … при смене паролей. Повтор без --force: ошибка «уже существует».
 
 Пример:
@@ -95,7 +95,7 @@ def main() -> None:
 
     print(f"OK: secrets qm-mysql and qm-app in namespace {ns}", flush=True)
     print(
-        "Next: sudo python3 scripts/install-k3s-helm.py -f your-values.yaml",
+        "Next: sudo python3 scripts/install-k3s-helm.py   # GitOps: K3s, Helm, Argo CD + Application qm",
         flush=True,
     )
 

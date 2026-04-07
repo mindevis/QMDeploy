@@ -1,4 +1,4 @@
-# Шаблон: плейсхолдеры подставляет scripts/install-optional-addons.py (не kubectl apply вручную).
+# Шаблон: плейсхолдеры подставляют scripts/install-optional-addons.py и install-k3s-helm.py (GitOps bootstrap).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

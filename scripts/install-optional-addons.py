@@ -4,6 +4,9 @@
 
 Требуется: kubectl, Helm 3, доступ к кластеру.
 
+По умолчанию полный greenfield-путь: scripts/install-k3s-helm.py (ставит K3s/Helm при необходимости и
+вызывает этот скрипт с --argocd).
+
 Пример:
 
   chmod +x install-optional-addons.py

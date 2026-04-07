@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
 """
-QMDeploy: при необходимости ставит K3s, затем helm upgrade --install для чарта qm-project.
+QMDeploy: bootstrap K3s (optional), Helm 3 (optional), затем по умолчанию Argo CD + Application «qm» (GitOps).
 
-Требуется: Helm 3 в PATH. Установка K3s: curl get.k3s.io (обычно нужен root/sudo).
+Режим по умолчанию: без прямого «helm upgrade qm» на хосте — стек ставит Argo CD из helm/argocd, регистрирует
+Application на чарт qm-project из Git (values-argocd.yaml). Мониторинг Grafana/Prometheus в чарте по умолчанию
+выключен (monitoring.enabled: false в values-argocd.yaml); включите в Git или UI Argo, когда понадобится.
+
+Legacy: --direct-helm — прежний helm upgrade --install qm; все оставшиеся аргументы передаются в helm.
+
+Требуется: Python 3, curl; для GitOps-режима после установки K3s — доступ к API (KUBECONFIG).
 
 Переменные окружения: NAMESPACE (по умолчанию qm), RELEASE_NAME (по умолчанию qm),
-KUBECONFIG (по умолчанию /etc/rancher/k3s/k3s.yaml), INSTALL_K3S_VERSION (опционально).
-
-Все аргументы командной строки передаются в helm после имени чарта (например -f values.yaml).
+KUBECONFIG (после K3s по умолчанию /etc/rancher/k3s/k3s.yaml), INSTALL_K3S_VERSION (опционально),
+SKIP_SECRET_CHECK=1, ARGOCD_HOST (алиас для --argocd-host при необходимости в обёртках).
 """
 from __future__ import annotations
 
+import argparse
 import os
 import shutil
 import subprocess
@@ -19,6 +25,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CHART = ROOT / "helm" / "qm-project"
+OPTIONAL_ADDONS = ROOT / "scripts" / "install-optional-addons.py"
 
 
 def _has_cluster_cli() -> bool:
@@ -36,8 +43,45 @@ def _install_k3s() -> None:
     )
 
 
+def _ensure_kubectl_in_path() -> None:
+    """После установки K3s в PATH должен быть kubectl (часто симлинк на k3s)."""
+    if shutil.which("kubectl"):
+        return
+    k3s = shutil.which("k3s")
+    if not k3s:
+        print("ERROR: neither kubectl nor k3s in PATH after K3s install.", file=sys.stderr)
+        sys.exit(1)
+    dest = Path("/usr/local/bin/kubectl")
+    if dest.exists() or dest.is_symlink():
+        print(
+            "ERROR: kubectl not in PATH but /usr/local/bin/kubectl exists; extend PATH "
+            "(e.g. export PATH=\"/usr/local/bin:$PATH\") or run as root.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    try:
+        dest.symlink_to(k3s)
+        print(f"Linked {dest} -> {k3s}", flush=True)
+    except OSError as e:
+        print(
+            f"ERROR: kubectl missing and could not symlink {dest} ({e}). "
+            "Run as root or use `k3s kubectl` with KUBECONFIG.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+
+def _install_helm() -> None:
+    print("Installing Helm 3 (get-helm-3) …", flush=True)
+    subprocess.run(
+        "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash",
+        shell=True,
+        check=True,
+    )
+
+
 def _warn_missing_secrets(namespace: str) -> None:
-    """Подсказка до helm: без qm-mysql поды упадут до создания секретов."""
+    """Подсказка: без qm-mysql поды упадут до создания секретов."""
     if os.environ.get("SKIP_SECRET_CHECK"):
         return
     if not shutil.which("kubectl"):
@@ -56,39 +100,38 @@ def _warn_missing_secrets(namespace: str) -> None:
         )
 
 
-def main() -> None:
-    if len(sys.argv) > 1 and sys.argv[1] in ("-h", "--help"):
-        print(
-            "Usage: sudo python3 install-k3s-helm.py [helm args, e.g. -f values.yaml --set k=v]\n"
-            f"  Chart: {CHART}\n"
-            f"  Release: {os.environ.get('RELEASE_NAME', 'qm')}, "
-            f"namespace: {os.environ.get('NAMESPACE', 'qm')}",
-        )
-        sys.exit(0)
+def _run_gitops_bootstrap(ns: argparse.Namespace) -> None:
+    cmd = [
+        sys.executable,
+        str(OPTIONAL_ADDONS),
+        "--argocd",
+        "--argocd-host",
+        ns.argocd_host,
+        "--qm-repo-url",
+        ns.qm_repo_url,
+        "--qm-repo-revision",
+        ns.qm_repo_revision,
+        "--qm-namespace",
+        ns.qm_namespace,
+    ]
+    if ns.argocd_chart_version:
+        cmd.extend(["--argocd-chart-version", ns.argocd_chart_version])
+    if ns.argocd_skip_qm_app:
+        cmd.append("--argocd-skip-qm-app")
+    kc = os.environ.get("KUBECONFIG")
+    if kc:
+        cmd.extend(["--kubeconfig", kc])
+    print("GitOps: Argo CD + Application qm …", flush=True)
+    subprocess.run(cmd, check=True)
+    print(
+        "OK: Argo CD installed; Application «qm» syncs from Git (values-argocd.yaml). "
+        "Grafana/Prometheus: set monitoring.enabled: true in values (or Argo UI), then sync — off by default.",
+        flush=True,
+    )
 
-    if not (CHART / "Chart.yaml").is_file():
-        print(f"ERROR: chart not found: {CHART / 'Chart.yaml'}", file=sys.stderr)
-        sys.exit(1)
 
-    if not shutil.which("helm"):
-        print(
-            "ERROR: install Helm 3 first: https://helm.sh/docs/intro/install/",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    if not _has_cluster_cli():
-        _install_k3s()
-
-    if "KUBECONFIG" not in os.environ:
-        os.environ["KUBECONFIG"] = "/etc/rancher/k3s/k3s.yaml"
-
-    namespace = os.environ.get("NAMESPACE", "qm")
-    release = os.environ.get("RELEASE_NAME", "qm")
-    helm_extra = sys.argv[1:]
-
+def _direct_helm_upgrade(namespace: str, release: str, helm_extra: list[str]) -> None:
     _warn_missing_secrets(namespace)
-
     cmd = [
         "helm",
         "upgrade",
@@ -102,6 +145,107 @@ def main() -> None:
     ]
     subprocess.run(cmd, check=True)
     print(f"OK: helm release {release} (namespace {namespace})", flush=True)
+
+
+def main() -> None:
+    p = argparse.ArgumentParser(
+        description=(
+            "Install K3s (if needed), Helm 3 (if needed), then Argo CD + GitOps Application qm by default."
+        )
+    )
+    p.add_argument(
+        "--direct-helm",
+        action="store_true",
+        help="Legacy: helm upgrade --install qm from local chart; pass extra helm flags after this option",
+    )
+    p.add_argument(
+        "--skip-argocd",
+        action="store_true",
+        help="Stop after K3s + Helm (no Argo CD); for advanced/manual flows",
+    )
+    p.add_argument(
+        "--argocd-host",
+        default=os.environ.get("ARGOCD_HOST", "k3s.qx-dev.ru"),
+        help="Argo CD Ingress FQDN (global.domain)",
+    )
+    p.add_argument("--argocd-chart-version", default=None, help="Pin argo-cd Helm chart version")
+    p.add_argument(
+        "--argocd-skip-qm-app",
+        action="store_true",
+        help="Install only Argo CD, do not apply Application q kubectl apply",
+    )
+    p.add_argument(
+        "--qm-repo-url",
+        default="https://github.com/mindevis/QMDeploy.git",
+        help="Git repo URL for Application qm",
+    )
+    p.add_argument(
+        "--qm-repo-revision",
+        default="main",
+        help="Git branch/tag for Application qm (targetRevision)",
+    )
+    p.add_argument(
+        "--qm-namespace",
+        default=os.environ.get("NAMESPACE", "qm"),
+        help="Namespace where qm chart is deployed",
+    )
+    args, unknown = p.parse_known_args()
+
+    if not (CHART / "Chart.yaml").is_file():
+        print(f"ERROR: chart not found: {CHART / 'Chart.yaml'}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.direct_helm:
+        if not shutil.which("helm"):
+            _install_helm()
+        if not _has_cluster_cli():
+            _install_k3s()
+            _ensure_kubectl_in_path()
+        if "KUBECONFIG" not in os.environ:
+            os.environ["KUBECONFIG"] = "/etc/rancher/k3s/k3s.yaml"
+        namespace = os.environ.get("NAMESPACE", "qm")
+        release = os.environ.get("RELEASE_NAME", "qm")
+        _direct_helm_upgrade(namespace, release, unknown)
+        return
+
+    if unknown:
+        print(
+            "ERROR: unexpected arguments:",
+            unknown,
+            file=sys.stderr,
+        )
+        print(
+            "Default mode uses Argo CD (no local helm release for qm). "
+            "For legacy direct install: sudo python3 scripts/install-k3s-helm.py --direct-helm -f my-values.yaml",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    if not _has_cluster_cli():
+        _install_k3s()
+    _ensure_kubectl_in_path()
+
+    if not shutil.which("helm"):
+        _install_helm()
+
+    if "KUBECONFIG" not in os.environ:
+        os.environ["KUBECONFIG"] = "/etc/rancher/k3s/k3s.yaml"
+
+    if not OPTIONAL_ADDONS.is_file():
+        print(f"ERROR: missing {OPTIONAL_ADDONS}", file=sys.stderr)
+        sys.exit(1)
+
+    _warn_missing_secrets(args.qm_namespace)
+
+    if args.skip_argocd:
+        print(
+            "OK: K3s and Helm ready (--skip-argocd). Install Argo CD manually, e.g. "
+            f"python3 {OPTIONAL_ADDONS} --argocd",
+            flush=True,
+        )
+        return
+
+    _run_gitops_bootstrap(args)
 
 
 if __name__ == "__main__":
