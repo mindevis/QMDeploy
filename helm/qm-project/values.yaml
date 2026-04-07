@@ -18,7 +18,6 @@ images:
   qmadmin: ""
   qmweb: ""
   qmdocs: ""
-  qmsecret: ""
 
 # Тег/ревизия образа из CI (short SHA и т.д.): bump-qmdeploy выставляет imageRevisions.<сервис>,
 # чтобы при :latest менялась аннотация пода и Argo выкатывал новый digest.
@@ -27,7 +26,6 @@ imageRevisions:
   qmadmin: ""
   qmweb: ""
   qmdocs: ""
-  qmsecret: ""
 
 # Uncomment after creating the secret (same as flat manifests):
 # imagePullSecrets:
@@ -46,8 +44,6 @@ ingress:
     admin: admin.example.com
     web: web.example.com
     docs: docs.example.com
-    # QMSecret (Cloud only; включите qmsecret.enabled). Для продакшена ограничьте доступ (firewall / BasicAuth / IP allowlist).
-    key: key.qx-dev.ru
     # Grafana (включите monitoring.enabled). Пароль админа: Secret qm-app → GRAFANA_ADMIN_PASSWORD или monitoring.grafana.adminPasswordPlain в values.
     grafana: monit.qx-dev.ru
     # phpMyAdmin (включите phpmyadmin.enabled). В продакшене ограничьте доступ (firewall / VPN / BasicAuth).
@@ -130,21 +126,6 @@ qmdocs:
       memory: 512Mi
 
 # Опциональный Postfix в кластере (отправка с вашего домена). При smtpRelay.enabled чарт создаёт Secret smtp-relay-auth.
-# QMSecret — зашифрованное хранилище секретов (только Cloud; не для Free/Pro). Требует ключи в Secret qm-app: QMSECRET_MASTER_KEY (base64, 32 байта), QMSECRET_SERVICE_TOKEN.
-qmsecret:
-  enabled: false
-  # HTTP-порт пода/Service. LISTEN и QMSECRET_BASE_URL выставляются чартом.
-  port: 9088
-  persistence:
-    create: true
-    storage: 1Gi
-  resources:
-    requests:
-      cpu: 25m
-      memory: 64Mi
-    limits:
-      cpu: 500m
-      memory: 256Mi
 
 # Опциональный мониторинг: Prometheus + Grafana + mysqld-exporter + blackbox (HTTP /health QMServer). Только внутри кластера + Ingress для Grafana.
 monitoring:

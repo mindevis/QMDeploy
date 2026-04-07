@@ -10,7 +10,7 @@ on:
       service:
         required: true
         type: string
-        description: "Ключ images.* в чарте (qmdocs, qmadmin, qmweb, qmserver, qmsecret)"
+        description: "Ключ images.* в чарте (qmdocs, qmadmin, qmweb, qmserver)"
       image_ref:
         required: true
         type: string

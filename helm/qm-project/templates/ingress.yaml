@@ -53,18 +53,6 @@ spec:
                 name: qmdocs
                 port:
                   number: 80
-    {{- if .Values.qmsecret.enabled }}
-    - host: {{ .Values.ingress.hosts.key | default "key.qx-dev.ru" | quote }}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: qmsecret
-                port:
-                  number: {{ .Values.qmsecret.port | default 9088 }}
-    {{- end }}
     {{- if .Values.monitoring.enabled }}
     - host: {{ .Values.ingress.hosts.grafana | default "monit.qx-dev.ru" | quote }}
       http:
@@ -96,9 +84,6 @@ spec:
         - {{ .Values.ingress.hosts.admin | quote }}
         - {{ .Values.ingress.hosts.web | quote }}
         - {{ .Values.ingress.hosts.docs | quote }}
-        {{- if .Values.qmsecret.enabled }}
-        - {{ .Values.ingress.hosts.key | default "key.qx-dev.ru" | quote }}
-        {{- end }}
         {{- if .Values.monitoring.enabled }}
         - {{ .Values.ingress.hosts.grafana | default "monit.qx-dev.ru" | quote }}
         {{- end }}

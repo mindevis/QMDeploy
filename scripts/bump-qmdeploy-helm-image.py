@@ -13,7 +13,7 @@ import argparse
 import sys
 from pathlib import Path
 
-VALID_SERVICES = frozenset({"qmdocs", "qmadmin", "qmweb", "qmserver", "qmsecret"})
+VALID_SERVICES = frozenset({"qmdocs", "qmadmin", "qmweb", "qmserver"})
 
 
 def parse_image_tag(image_ref: str) -> str:

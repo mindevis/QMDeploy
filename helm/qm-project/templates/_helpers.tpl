@@ -1,6 +1,6 @@
 {{/*
 Full container image: ghcr.io/<owner>/<name>:<tag> or images.<name> override.
-Names: qmserver, qmadmin, qmweb, qmdocs, qmsecret
+Names: qmserver, qmadmin, qmweb, qmdocs
 */}}
 {{- define "qm.image" -}}
 {{- $root := index . 0 -}}

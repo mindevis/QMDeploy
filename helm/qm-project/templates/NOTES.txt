@@ -12,7 +12,7 @@
    kubectl -n {{ .Release.Namespace }} get secret smtp-relay-auth -o jsonpath='{.data.SMTP_RELAY_USERS}' | base64 -d; echo
 {{- end }}
 
-   Первичная установка: python3 scripts/create-greenfield-secrets.py -n {{ .Release.Namespace }} — см. README QMDeploy.
+   Первичная установка: python3 scripts/k8s-manage.py secrets -n {{ .Release.Namespace }} — см. README QMDeploy.
 
 2. Проверка:
    kubectl -n {{ .Release.Namespace }} get pods,ingress
