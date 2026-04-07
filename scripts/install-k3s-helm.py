@@ -2,6 +2,9 @@
 """
 QMDeploy: bootstrap K3s (optional), Helm 3 (optional), затем по умолчанию Argo CD + Application «qm» (GitOps).
 
+На целевом сервере, где ставится K3s, поддерживается работа только от пользователя root (установка K3s/Helm,
+симлинк kubectl, kubeconfig /etc/rancher/k3s/k3s.yaml).
+
 Режим по умолчанию: без прямого «helm upgrade qm» на хосте — стек ставит Argo CD из helm/argocd, регистрирует
 Application на чарт qm-project из Git (values-argocd.yaml). Мониторинг Grafana/Prometheus в чарте по умолчанию
 выключен (monitoring.enabled: false в values-argocd.yaml); включите в Git или UI Argo, когда понадобится.
@@ -216,7 +219,8 @@ def main() -> None:
         )
         print(
             "Default mode uses Argo CD (no local helm release for qm). "
-            "For legacy direct install: sudo python3 scripts/install-k3s-helm.py --direct-helm -f my-values.yaml",
+            "For legacy direct install (as root on K3s server): "
+            "python3 scripts/install-k3s-helm.py --direct-helm -f my-values.yaml",
             file=sys.stderr,
         )
         sys.exit(1)
