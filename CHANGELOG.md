@@ -1,3 +1,11 @@
+# [1.9.11](https://github.com/mindevis/QMDeploy/compare/v1.9.10...v1.9.11) (2026-04-07)
+
+
+### Refactor
+
+* **scripts:** remove standalone **`install-k3s-helm.py`**, **`create-greenfield-secrets.py`**, **`install-optional-addons.py`**; logic lives in **`scripts/k8s_manage/`**; **`k8s-manage.py`** remains the only entry.
+* **scripts:** **`sync-from-github.py`** downloads the **`k8s_manage`** package files.
+
 # [1.9.10](https://github.com/mindevis/QMDeploy/compare/v1.9.9...v1.9.10) (2026-04-07)
 
 

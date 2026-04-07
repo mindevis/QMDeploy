@@ -37,9 +37,11 @@ HELM_BUNDLE_FILES = [
 DEPLOY_PYTHON_SCRIPTS = [
     "scripts/sync-from-github.py",
     "scripts/k8s-manage.py",
-    "scripts/install-k8s-helm.py",
-    "scripts/create-greenfield-secrets.py",
-    "scripts/install-optional-addons.py",
+    "scripts/k8s_manage/__init__.py",
+    "scripts/k8s_manage/cli.py",
+    "scripts/k8s_manage/bootstrap.py",
+    "scripts/k8s_manage/secrets.py",
+    "scripts/k8s_manage/addons.py",
 ]
 
 DEFAULT_HELM_BASE_URL = (

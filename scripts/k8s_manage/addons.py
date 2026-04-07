@@ -1,21 +1,19 @@
-#!/usr/bin/env python3
 """
 Опциональная установка Argo CD и MinIO (S3) через Helm 3 — отдельно от чарта qm-project.
 
 Требуется: kubectl, Helm 3, доступ к кластеру.
 
-Полный greenfield: **scripts/k8s-manage.py** (bootstrap → install-k3s-helm → этот скрипт с --argocd).
+Полный greenfield: **scripts/k8s-manage.py** (bootstrap вызывает этот модуль с --argocd).
 Отдельно: **k8s-manage.py addons**. На сервере K3s — от root.
 
 Пример:
 
-  chmod +x install-optional-addons.py
-  ./install-optional-addons.py --argocd --s3
-  ./install-optional-addons.py --argocd --argocd-skip-qm-app   # только Argo CD без Application qm
-  ./install-optional-addons.py --s3 --minio-root-password 'секрет'
-  ./install-optional-addons.py --uninstall-argocd            # полное удаление Argo CD (Application + Helm + ns)
-  ./install-optional-addons.py --uninstall-s3                # полное удаление MinIO (Helm + ns)
-  ./install-optional-addons.py --uninstall-argocd --uninstall-s3
+  python3 scripts/k8s-manage.py addons --argocd --s3
+  python3 scripts/k8s-manage.py addons --argocd --argocd-skip-qm-app
+  python3 scripts/k8s-manage.py addons --s3 --minio-root-password 'секрет'
+  python3 scripts/k8s-manage.py addons --uninstall-argocd
+  python3 scripts/k8s-manage.py addons --uninstall-s3
+  python3 scripts/k8s-manage.py addons --uninstall-argocd --uninstall-s3
 """
 from __future__ import annotations
 
@@ -25,9 +23,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+_QMDEPLOY_ROOT = Path(__file__).resolve().parents[2]
+
 
 def _deploy_semver() -> str:
-    """Semver из deploy/VERSION (обход вверх по каталогам). Fallback — если файла нет."""
+    """Semver из QMDeploy/VERSION (обход вверх по каталогам). Fallback — если файла нет."""
     here = Path(__file__).resolve()
     for d in (here.parent, *here.parents):
         vf = d / "VERSION"
@@ -73,9 +73,7 @@ def install_argocd(args: argparse.Namespace) -> None:
     ver: list[str] = []
     if args.argocd_chart_version:
         ver = ["--version", args.argocd_chart_version]
-    values_file = (
-        Path(__file__).resolve().parent.parent / "helm" / "argocd" / "values-k3s.yaml"
-    )
+    values_file = _QMDEPLOY_ROOT / "helm" / "argocd" / "values-k3s.yaml"
     if not values_file.is_file():
         print(f"ОШИБКА: нет файла Helm values: {values_file}", file=sys.stderr)
         sys.exit(1)
@@ -116,7 +114,7 @@ def apply_argocd_qm_application(args: argparse.Namespace) -> None:
         return
     ensure_kubectl()
     tpl = (
-        Path(__file__).resolve().parent.parent
+        _QMDEPLOY_ROOT
         / "helm"
         / "argocd"
         / "applications"
@@ -237,7 +235,7 @@ def install_minio(args: argparse.Namespace) -> None:
     )
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(
         description=(
             "Helm: опционально Argo CD и/или MinIO (S3). "
@@ -290,9 +288,12 @@ def main() -> None:
     p.add_argument(
         "--deploy-version",
         action="store_true",
-        help="Вывести semver Kubernetes deploy bundle (deploy/VERSION) и выйти",
+        help="Вывести semver Kubernetes deploy bundle (VERSION) и выйти",
     )
-    args = p.parse_args()
+    if argv is None:
+        args = p.parse_args()
+    else:
+        args = p.parse_args(argv)
     if args.deploy_version:
         print(_deploy_semver())
         return
@@ -320,7 +321,7 @@ def main() -> None:
                 f"kubectl delete namespace {args.minio_namespace}"
             )
         if args.argocd:
-            vf = Path(__file__).resolve().parent.parent / "helm" / "argocd" / "values-k3s.yaml"
+            vf = _QMDEPLOY_ROOT / "helm" / "argocd" / "values-k3s.yaml"
             print(
                 "DRY-RUN: helm upgrade --install argocd argo/argo-cd -n argocd --create-namespace "
                 f"-f {vf} --set global.domain={args.argocd_host}"
@@ -346,7 +347,3 @@ def main() -> None:
         uninstall_minio(args)
     elif args.s3:
         install_minio(args)
-
-
-if __name__ == "__main__":
-    main()
