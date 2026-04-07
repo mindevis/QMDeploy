@@ -80,9 +80,14 @@ spec:
             - name: QMNETWORK_SMTP_PASSWORD
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.smtpRelay.enabled }}
+                  name: smtp-relay-auth
+                  key: QMNETWORK_SMTP_PASSWORD
+                  {{- else }}
                   name: qm-app
                   key: QMNETWORK_SMTP_PASSWORD
                   optional: true
+                  {{- end }}
             - name: QMNETWORK_INTERNAL_SECRET
               valueFrom:
                 secretKeyRef:

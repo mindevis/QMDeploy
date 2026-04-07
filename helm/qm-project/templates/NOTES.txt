@@ -8,7 +8,7 @@
    phpMyAdmin: при необходимости логин в MySQL — пользователь/пароль из Secret qm-mysql (или preloadAppCredentials в values).
 {{- end }}
 {{- if .Values.smtpRelay.enabled }}
-   При smtpRelay.enabled: Secret smtp-relay-auth (ключ SMTP_RELAY_USERS) создаётся чартом. Строка для QMAdmin/QMNetwork:
+   При smtpRelay.enabled: Secret smtp-relay-auth (SMTP_RELAY_USERS и QMNETWORK_SMTP_PASSWORD). QMNetwork получает QMNETWORK_SMTP_HOST=smtp-relay, USER/FROM={{ .Values.smtpRelay.relayUserEmail | default "noreply@qx-dev.ru" }} (если не задано в qmserver.config). Просмотр строки relay:
    kubectl -n {{ .Release.Namespace }} get secret smtp-relay-auth -o jsonpath='{.data.SMTP_RELAY_USERS}' | base64 -d; echo
 {{- end }}
 

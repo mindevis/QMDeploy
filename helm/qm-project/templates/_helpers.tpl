@@ -59,19 +59,48 @@ limits:
 {{- end }}
 
 {{/*
-Одна строка SMTP AUTH для boky/postfix: email:password.
-Приоритет: существующий Secret smtp-relay-auth → smtpRelayUsersPlain в values → детерминированный пароль (sha256).
+Пароль SMTP AUTH для relay/QMNetwork (без user:).
+Приоритет: ключ QMNETWORK_SMTP_PASSWORD в smtp-relay-auth → разбор SMTP_RELAY_USERS → smtpRelayUsersPlain → sha256(release|ns|email) первые 32 hex.
 */}}
-{{- define "qm.smtpRelayUsersLine" -}}
+{{- define "qm.smtpRelayPasswordPlain" -}}
 {{- $email := .Values.smtpRelay.relayUserEmail | default "noreply@qx-dev.ru" -}}
 {{- $ns := .Release.Namespace -}}
 {{- $sec := lookup "v1" "Secret" $ns "smtp-relay-auth" -}}
-{{- if and $sec (index $sec.data "SMTP_RELAY_USERS") -}}
-{{- index $sec.data "SMTP_RELAY_USERS" | b64dec -}}
-{{- else if .Values.smtpRelay.smtpRelayUsersPlain -}}
-{{- .Values.smtpRelay.smtpRelayUsersPlain -}}
+{{- if and $sec (index $sec.data "QMNETWORK_SMTP_PASSWORD") -}}
+{{- index $sec.data "QMNETWORK_SMTP_PASSWORD" | b64dec -}}
+{{- else if and $sec (index $sec.data "SMTP_RELAY_USERS") -}}
+{{- $line := index $sec.data "SMTP_RELAY_USERS" | b64dec | trim -}}
+{{- $m := regexFindSubmatch "^(.+?):(.+)$" $line -}}
+{{- if and $m (ge (len $m) 3) -}}
+{{- index $m 2 -}}
 {{- else -}}
 {{- $hash := sha256sum (printf "%s|%s|%s" .Release.Name $ns $email) -}}
-{{- printf "%s:%s" $email (trunc 32 $hash) -}}
+{{- trunc 32 $hash -}}
 {{- end -}}
+{{- else if .Values.smtpRelay.smtpRelayUsersPlain -}}
+{{- $line := .Values.smtpRelay.smtpRelayUsersPlain | trim -}}
+{{- $prefix := printf "%s:" $email -}}
+{{- if hasPrefix $prefix $line -}}
+{{- trimPrefix $prefix $line -}}
+{{- else -}}
+{{- $m := regexFindSubmatch "^(.+?):(.+)$" $line -}}
+{{- if and $m (ge (len $m) 3) -}}
+{{- index $m 2 -}}
+{{- else -}}
+{{- $hash := sha256sum (printf "%s|%s|%s" .Release.Name $ns $email) -}}
+{{- trunc 32 $hash -}}
+{{- end -}}
+{{- end -}}
+{{- else -}}
+{{- $hash := sha256sum (printf "%s|%s|%s" .Release.Name $ns $email) -}}
+{{- trunc 32 $hash -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Одна строка SMTP AUTH для boky/postfix: текущий relayUserEmail + пароль из qm.smtpRelayPasswordPlain.
+*/}}
+{{- define "qm.smtpRelayUsersLine" -}}
+{{- $email := .Values.smtpRelay.relayUserEmail | default "noreply@qx-dev.ru" -}}
+{{- printf "%s:%s" $email (include "qm.smtpRelayPasswordPlain" .) -}}
 {{- end }}

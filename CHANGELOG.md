@@ -1,3 +1,10 @@
+# [1.9.25](https://github.com/mindevis/QMDeploy/compare/v1.9.24...v1.9.25) (2026-04-07)
+
+
+### Fixed
+
+* **helm:** при **`smtpRelay.enabled`** QMNetwork получает **`QMNETWORK_SMTP_HOST=smtp-relay`**, **USER/FROM** по **`smtpRelay.relayUserEmail`**, пароль — из **`smtp-relay-auth`** (**`QMNETWORK_SMTP_PASSWORD`** + разбор legacy **`SMTP_RELAY_USERS`**); больше не требуется дублировать пароль в **`qm-app`** для верификации email.
+
 # [1.9.24](https://github.com/mindevis/QMDeploy/compare/v1.9.23...v1.9.24) (2026-04-07)
 
 

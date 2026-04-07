@@ -103,6 +103,8 @@ qmserver:
     qmnetworkOAuthRedirectUris: ""
     # Публичный URL API для ссылок подтверждения email QMNetwork; пусто — http(s)://ingress.hosts.api
     qmnetworkVerifyEmailPublicUrl: ""
+    # Пусто + smtpRelay.enabled → QMNETWORK_*: хост smtp-relay, user/from = smtpRelay.relayUserEmail, пароль из Secret smtp-relay-auth.
+    # Иначе задайте вручную (внешний SMTP) и положите QMNETWORK_SMTP_PASSWORD в Secret qm-app.
     qmnetworkSmtpHost: ""
     qmnetworkSmtpPort: "587"
     qmnetworkSmtpUser: ""
@@ -147,7 +149,7 @@ qmdocs:
       cpu: 500m
       memory: 512Mi
 
-# Опциональный Postfix в кластере (отправка с вашего домена). При smtpRelay.enabled чарт создаёт Secret smtp-relay-auth (SMTP_RELAY_USERS, формат user:password для boky/postfix).
+# Опциональный Postfix в кластере (отправка с вашего домена). При smtpRelay.enabled чарт создаёт Secret smtp-relay-auth (SMTP_RELAY_USERS и QMNETWORK_SMTP_PASSWORD).
 # QMSecret — зашифрованное хранилище секретов (только Cloud; не для Free/Pro). Требует ключи в Secret qm-app: QMSECRET_MASTER_KEY (base64, 32 байта), QMSECRET_SERVICE_TOKEN.
 qmsecret:
   enabled: false
@@ -222,6 +224,7 @@ smtpRelay:
   enabled: false
   image: docker.io/boky/postfix:latest
   allowedSenderDomains: "qx-dev.ru"
+  # HELO/EHLO и связанные заголовки; для доставляемости настройте DNS ниже.
   hostname: smtp.qx-dev.ru
   # Логин SMTP AUTH (домен должен совпадать с allowedSenderDomains / вашим доменом).
   relayUserEmail: noreply@qx-dev.ru
@@ -234,6 +237,11 @@ smtpRelay:
     limits:
       cpu: "1"
       memory: 512Mi
+  # DNS (домен вроде qx-dev.ru), чтобы письма не уходили в спам — по возможности:
+  # - TXT на apex: SPF v=spf1 ip4:<публичный_IP_исходящей_почты_кластера/NAT> ~all (или include провайдера).
+  # - TXT _dmarc.qx-dev.ru: v=DMARC1; p=none; rua=mailto:postmaster@qx-dev.ru (позже усилить p=quarantine/reject).
+  # - PTR (обратная зона) для того же IP как smtp.qx-dev.ru — у хостера/VPS.
+  # - DKIM: образ boky/postfix не настраивает подпись из коробки; при необходимости отдельный relay с DKIM или доп. контейнер.
 
 qmnetwork:
   # HTTP-порт пода/Service (не 8080 — QMServer слушает :8080). LISTEN и QMNETWORK_INTERNAL_URL в ConfigMap QMServer согласованы с этим значением.

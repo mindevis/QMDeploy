@@ -26,8 +26,23 @@ data:
   QMNETWORK_PUBLIC_ORIGIN: {{ $pub | quote }}
   {{- $defVerifyURL := $defPub }}
   QMNETWORK_VERIFY_EMAIL_PUBLIC_URL: {{ .Values.qmserver.config.qmnetworkVerifyEmailPublicUrl | default $defVerifyURL | quote }}
-  QMNETWORK_SMTP_HOST: {{ .Values.qmserver.config.qmnetworkSmtpHost | default "" | quote }}
+  {{- $relay := .Values.smtpRelay | default dict }}
+  {{- $relayEmail := $relay.relayUserEmail | default "noreply@qx-dev.ru" }}
+  {{- $smtpHost := .Values.qmserver.config.qmnetworkSmtpHost | default "" }}
+  {{- if and $relay.enabled (empty $smtpHost) }}
+  {{- $smtpHost = "smtp-relay" }}
+  {{- end }}
+  {{- $smtpUser := .Values.qmserver.config.qmnetworkSmtpUser | default "" }}
+  {{- if and $relay.enabled (empty $smtpUser) }}
+  {{- $smtpUser = $relayEmail }}
+  {{- end }}
+  {{- $smtpFrom := .Values.qmserver.config.qmnetworkSmtpFrom | default "" }}
+  {{- if and $relay.enabled (empty $smtpFrom) }}
+  {{- $smtpFrom = $relayEmail }}
+  {{- end }}
+  QMNETWORK_SMTP_HOST: {{ $smtpHost | quote }}
+  # Порт submission у smtp-relay (Service) — 587; для внешнего провайдера задайте в qmserver.config.qmnetworkSmtpPort.
   QMNETWORK_SMTP_PORT: {{ .Values.qmserver.config.qmnetworkSmtpPort | default "587" | quote }}
-  QMNETWORK_SMTP_USER: {{ .Values.qmserver.config.qmnetworkSmtpUser | default "" | quote }}
-  QMNETWORK_SMTP_FROM: {{ .Values.qmserver.config.qmnetworkSmtpFrom | default "" | quote }}
+  QMNETWORK_SMTP_USER: {{ $smtpUser | quote }}
+  QMNETWORK_SMTP_FROM: {{ $smtpFrom | quote }}
   QMNETWORK_EMAIL_VERIFY_TTL: {{ .Values.qmserver.config.qmnetworkEmailVerifyTTL | default "48h" | quote }}
