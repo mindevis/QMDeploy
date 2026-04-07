@@ -1,3 +1,10 @@
+# [1.9.32](https://github.com/mindevis/QMDeploy/compare/v1.9.31...v1.9.32) (2026-04-07)
+
+
+### Changed
+
+* **helm / qmnetwork:** **`command: ["./qmnetwork", "--server"]`** — как у QMServer (**`WORKDIR /app`** в образе QMNetwork v1.1.21+).
+
 # [1.9.31](https://github.com/mindevis/QMDeploy/compare/v1.9.30...v1.9.31) (2026-04-07)
 
 
