@@ -1,3 +1,10 @@
+# [1.9.29](https://github.com/mindevis/QMDeploy/compare/v1.9.28...v1.9.29) (2026-04-07)
+
+
+### Added
+
+* **helm:** опциональный встроенный **Redis** (**`redis.enabled`**, Service/Deployment **`qm-redis`**) для **QMNetwork** post-verify токенов; **`qmnetwork.redisAddr`**, пароль (**`redisPassword`** / **`redisPasswordSecret`**), **`redisDb`**; init **`wait-redis`** при заданном адресе.
+
 # [1.9.27](https://github.com/mindevis/QMDeploy/compare/v1.9.26...v1.9.27) (2026-04-07)
 
 

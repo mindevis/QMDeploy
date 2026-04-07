@@ -1,0 +1,65 @@
+{{- $r := .Values.redis | default dict }}
+{{- if $r.enabled | default false }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: qm-redis
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: qm-redis
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: qm-project
+spec:
+  type: ClusterIP
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+  selector:
+    app: qm-redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qm-redis
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: qm-redis
+    {{- include "qm.labels" . | nindent 4 }}
+    app.kubernetes.io/part-of: qm-project
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qm-redis
+  template:
+    metadata:
+      labels:
+        app: qm-redis
+        {{- include "qm.labels" . | nindent 8 }}
+        app.kubernetes.io/part-of: qm-project
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: redis
+          image: {{ $r.image | default "redis:7-alpine" | quote }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: redis
+              containerPort: 6379
+          {{- if $r.resources }}
+          resources:
+            {{- toYaml $r.resources | nindent 12 }}
+          {{- else }}
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
+          {{- end }}
+{{- end }}

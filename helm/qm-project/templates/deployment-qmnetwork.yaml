@@ -1,5 +1,11 @@
 {{- $qmn := .Values.qmnetwork | default dict }}
 {{- $qmnPort := $qmn.port | default 9087 }}
+{{- $rd := .Values.redis | default dict }}
+{{- $redisAddr := $qmn.redisAddr | default "" | trim }}
+{{- if and ($rd.enabled | default false) (eq $redisAddr "") }}
+{{- $redisAddr = "qm-redis:6379" }}
+{{- end }}
+{{- $redisDb := $qmn.redisDb | default 0 | int }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -56,6 +62,22 @@ spec:
                 sleep 2
               done
               exit 1
+{{- if ne $redisAddr "" }}
+        - name: wait-redis
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              hostport="{{ $redisAddr }}"
+              host="${hostport%%:*}"
+              port="${hostport##*:}"
+              for i in $(seq 1 60); do
+                if nc -z "$host" "$port"; then exit 0; fi
+                sleep 2
+              done
+              exit 1
+{{- end }}
       containers:
         - name: qmnetwork
           {{- $img := include "qm.image" (list . "qmnetwork") }}
@@ -94,6 +116,25 @@ spec:
                   name: qm-app
                   key: QMNETWORK_INTERNAL_SECRET
                   optional: true
+{{- if ne $redisAddr "" }}
+            - name: QMNETWORK_REDIS_ADDR
+              value: {{ $redisAddr | quote }}
+{{- $rsec := $qmn.redisPasswordSecret | default dict }}
+{{- if $rsec.name }}
+            - name: QMNETWORK_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $rsec.name | quote }}
+                  key: {{ $rsec.key | default "password" | quote }}
+{{- else if $qmn.redisPassword }}
+            - name: QMNETWORK_REDIS_PASSWORD
+              value: {{ $qmn.redisPassword | quote }}
+{{- end }}
+{{- if ne $redisDb 0 }}
+            - name: QMNETWORK_REDIS_DB
+              value: {{ $redisDb | quote }}
+{{- end }}
+{{- end }}
           ports:
             - name: http
               containerPort: {{ $qmnPort }}

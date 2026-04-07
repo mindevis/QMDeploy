@@ -247,9 +247,22 @@ smtpRelay:
   # - PTR (обратная зона) для того же IP как smtp.qx-dev.ru — у хостера/VPS.
   # - DKIM: образ boky/postfix не настраивает подпись из коробки; при необходимости отдельный relay с DKIM или доп. контейнер.
 
+# Опциональный Redis для QMNetwork (одноразовые post-verify токены между репликами). При redis.enabled=true и пустом qmnetwork.redisAddr — адрес qm-redis:6379.
+redis:
+  enabled: false
+  image: redis:7-alpine
+
 qmnetwork:
   # HTTP-порт пода/Service (не 8080 — QMServer слушает :8080). LISTEN и QMNETWORK_INTERNAL_URL в ConfigMap QMServer согласованы с этим значением.
   port: 9087
+  # Redis host:port для post-verify / HA (переменная QMNETWORK_REDIS_ADDR). Пусто и redis.enabled=false — in-memory в поде (не подходит для replicas>1).
+  redisAddr: ""
+  # Опционально: пароль Redis (или redisPasswordSecret).
+  redisPassword: ""
+  redisPasswordSecret:
+    name: ""
+    key: password
+  redisDb: 0
   # DSN MySQL на БД qmnetwork (тот же хост/пользователь, что QMServer). Пусто — из Secret qm-app, ключ QMNETWORK_MYSQL_DSN.
   mysqlDsn: ""
   # Публичный origin портала (QMNETWORK_PUBLIC_ORIGIN). Пусто — https?://ingress.hosts.auth
