@@ -14,7 +14,7 @@ images:
 
 # Заполняется CI (bump): меняется при новой сборке, чтобы Argo синкнул rollout без пина образа в spec.
 imageRevisions:
-  qmserver: "2ba3a8e"
+  qmserver: "635804d"
   qmadmin: "1.4.17"
   qmweb: "1.4.6"
   qmdocs: "967b3ae"
