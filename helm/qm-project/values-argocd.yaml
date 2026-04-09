@@ -17,7 +17,7 @@ imageRevisions:
   qmserver: "fd0f6df"
   qmadmin: "2925ab9"
   qmweb: "1.4.8"
-  qmdocs: "1.0.37"
+  qmdocs: "b52bed0"
 
 # kubectl create secret docker-registry ghcr-credentials -n qm --docker-server=ghcr.io --docker-username=... --docker-password=...
 imagePullSecrets:
