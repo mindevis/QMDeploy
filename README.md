@@ -157,7 +157,7 @@ npm run release:dry       # сухой прогон
 npm run release           # changelog, bump VERSION + Chart.yaml, коммит, тег, push, GitHub Release
 ```
 
-**`release.config.cjs`**: по умолчанию **`repositoryUrl`** — **`git@github.com:mindevis/QMDeploy.git`** (переопределение: **`SEMANTIC_RELEASE_REPOSITORY_URL`**). После релиза выполняются **`git push origin main --follow-tags`** и создание **GitHub Release** (плагин **`@semantic-release/github`**). Без **`GH_TOKEN`** / **`GITHUB_TOKEN`** шаг GitHub упадёт; для push нужен SSH-ключ к GitHub. Релиз **из каталога субмодуля внутри qm-project**: задайте **`QM_MONOREPO_ROOT`** (абсолютный путь к корню монорепозитория), чтобы после push QMDeploy выполнился второй push корня (обновить gitlink субмодулей). Подробнее — **`tools/semantic-release/README.md`** в монорепозитории QMProject.
+**`release.config.cjs`**: по умолчанию **`repositoryUrl`** — **`git@github.com:mindevis/QMDeploy.git`** (переопределение: **`SEMANTIC_RELEASE_REPOSITORY_URL`**). После релиза выполняются **`git push origin main --follow-tags`** и создание **GitHub Release** (плагин **`@semantic-release/github`**). Без **`GH_TOKEN`** / **`GITHUB_TOKEN`** шаг GitHub упадёт; для push нужен SSH-ключ к GitHub. Подробнее — **`tools/semantic-release/README.md`** в монорепозитории **QMProject** (если клон **QMDeploy** лежит рядом с **qm-project**).
 
 ## Версии
 
@@ -168,7 +168,7 @@ npm run release           # changelog, bump VERSION + Chart.yaml, коммит, 
 
 ## Монорепозиторий QMProject
 
-Корень **[mindevis/QMProject](https://github.com/mindevis/QMProject)** подключает этот репозиторий как **git submodule `QMDeploy`**. Разработка приложений — в субмодулях приложений; деплой в k8s — здесь.
+Корень **[mindevis/QMProject](https://github.com/mindevis/QMProject)** содержит общий стек (compose, Makefile и т.д.); **QMDeploy** и остальные **QM-*** — **отдельные репозитории**, клонируемые рядом в **`QMDeploy/`**, **`QMServer/`**, … (см. **`qm-project/.gitignore`** и **`tools/detach-qm-repos-from-monorepo.sh`**). Деплой в k8s — в этом репозитории.
 
 ## Публикация как отдельного репозитория
 

@@ -1,3 +1,11 @@
+# [1.9.41](https://github.com/mindevis/QMDeploy/compare/v1.9.40...v1.9.41) (2026-04-07)
+
+
+### Changed
+
+* **README:** монорепо **QMProject** — приложения **QM-*** как отдельные клоны рядом с корнем (без git submodule).
+* **release:** один **`git push`** после релиза; убран второй push корня через **`QM_MONOREPO_ROOT`**.
+
 # [1.9.40](https://github.com/mindevis/QMDeploy/compare/v1.9.39...v1.9.40) (2026-04-07)
 
 

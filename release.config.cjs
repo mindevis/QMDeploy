@@ -1,18 +1,8 @@
 /** @type {import('semantic-release').Options} */
 const path = require('path');
 
-function monorepoPublishCmd() {
-  const base = 'git push origin main --follow-tags';
-  const root = process.env.QM_MONOREPO_ROOT;
-  if (root && String(root).trim()) {
-    const escaped = String(root).trim().replace(/'/g, "'\\''");
-    return `${base} && cd '${escaped}' && git push origin main --follow-tags`;
-  }
-  return base;
-}
-
 const pushAndGithub = [
-  ['@semantic-release/exec', { publishCmd: monorepoPublishCmd() }],
+  ['@semantic-release/exec', { publishCmd: 'git push origin main --follow-tags' }],
   [
     '@semantic-release/github',
     {
