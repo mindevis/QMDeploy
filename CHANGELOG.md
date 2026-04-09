@@ -1,3 +1,14 @@
+# [1.9.43](https://github.com/mindevis/QMDeploy/compare/v1.9.42...v1.9.43) (2026-04-09)
+
+
+### Removed
+
+* **helm/qm-project/extras:** пример **`traefik-middleware-large-post.yaml`** — QMAdmin шлёт массовую загрузку **пакетами ~50 МиБ**, отдельный middleware под огромное тело обычно не нужен.
+
+### Changed
+
+* **values.yaml:** комментарий к **`ingress`** — порционная загрузка в **QMAdmin** и **`client_max_body_size`** при внешнем nginx.
+
 # [1.9.42](https://github.com/mindevis/QMDeploy/compare/v1.9.41...v1.9.42) (2026-04-09)
 
 

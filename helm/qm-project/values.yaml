@@ -35,15 +35,9 @@ imagePullSecrets: []
 # Ingress (Traefik on K3s)
 ingress:
   className: traefik
-  # Large multipart (QMAdmin → QMServer bulk-upload): apply Middleware then reference it, e.g.
-  #   kubectl apply -f helm/qm-project/extras/traefik-middleware-large-post.yaml
-  # annotations:
-  #   traefik.ingress.kubernetes.io/router.middlewares: qm-large-post@kubernetescrd
-  # (namespace-middlewarename@kubernetescrd — use your release namespace if not "qm".)
-  # For **nginx** ingress controller instead of Traefik, use e.g.:
-  #   nginx.ingress.kubernetes.io/proxy-body-size: "700m"
-  #   nginx.ingress.kubernetes.io/proxy-read-timeout: "7200"
-  #   nginx.ingress.kubernetes.io/proxy-send-timeout: "7200"
+  # QMAdmin отправляет массовую загрузку модов **пакетами ~50 MiB** на POST — отдельный
+  # Traefik Middleware под огромное тело обычно не нужен. Если перед API свой nginx с лимитом 1m,
+  # задайте **client_max_body_size** порядка **64m** (или больше для одного .jar >50 MiB).
   annotations: {}
   tls:
     enabled: false
