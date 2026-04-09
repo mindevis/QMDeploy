@@ -1,0 +1,30 @@
+# Optional: allow large multipart to QMServer (e.g. QMAdmin mods bulk-upload ~hundreds of MB).
+# K3s ships Traefik; Ingress in qm-project uses ingressClassName: traefik by default.
+#
+# 1) Fix apiVersion if needed:
+#    kubectl get crd middlewares.traefik.io >/dev/null && echo traefik.io/v1alpha1
+#    kubectl get crd middlewares.traefik.containo.us >/dev/null && echo traefik.containo.us/v1alpha1
+#
+# 2) Replace namespace "qm" with your Helm release namespace (values.namespace / -n).
+#
+# 3) kubectl apply -f traefik-middleware-large-post.yaml
+#
+# 4) Attach to the qm-public Ingress (same namespace) via values or kubectl edit:
+#    metadata:
+#      annotations:
+#        traefik.ingress.kubernetes.io/router.middlewares: qm-large-post@kubernetescrd
+#    (Format: <middleware-namespace>-<middleware-name>@kubernetescrd)
+#
+# 5) If connections still reset, raise Traefik entrypoint timeouts (Helm release traefik in kube-system),
+#    e.g. respondingTimeouts read/write/idle on websecure — see QMDocs deployment (K3s large uploads).
+
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: large-post
+  namespace: qm
+spec:
+  buffering:
+    # ~700 MiB (align with nginx client_max_body_size in monorepo nginx/sites-available/api.qx-dev.ru.conf)
+    maxRequestBodyBytes: 734003200
+    memRequestBodyBytes: 2097152

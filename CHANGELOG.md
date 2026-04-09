@@ -1,3 +1,14 @@
+# [1.9.42](https://github.com/mindevis/QMDeploy/compare/v1.9.41...v1.9.42) (2026-04-09)
+
+
+### Added
+
+* **helm/qm-project/extras:** пример **Traefik Middleware** для больших POST на API (**`traefik-middleware-large-post.yaml`**).
+
+### Changed
+
+* **values.yaml:** комментарии к **`ingress.annotations`** — Traefik middleware / nginx ingress (тело и таймауты).
+
 # [1.9.41](https://github.com/mindevis/QMDeploy/compare/v1.9.40...v1.9.41) (2026-04-07)
 
 
