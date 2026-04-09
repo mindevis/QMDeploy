@@ -1,3 +1,10 @@
+# [1.9.44](https://github.com/mindevis/QMDeploy/compare/v1.9.43...v1.9.44) (2026-04-09)
+
+
+### Added
+
+* **helm/qm-project:** значение **`qmserver.billingCheckUrl`** → **`QMSERVER_BILLING_CHECK_URL`** в ConfigMap QMServer; в **`values-argocd.yaml`** по умолчанию **`https://bill.qx-dev.ru/v1/check`**.
+
 # [1.9.43](https://github.com/mindevis/QMDeploy/compare/v1.9.42...v1.9.43) (2026-04-09)
 
 

@@ -87,6 +87,8 @@ qmserver:
     storage: 10Gi
   progressDeadlineSeconds: 900
   hostNetwork: true
+  # QMBilling: POST JSON check endpoint (например https://bill.example.com/v1/check). Пусто — QMSERVER_BILLING_CHECK_URL не задаётся.
+  billingCheckUrl: ""
   config:
     appName: "QMServer Cloud"
     port: "8080"
