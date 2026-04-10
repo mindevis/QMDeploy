@@ -103,6 +103,11 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /app/.servers
+            {{- if .Values.qmserver.billingHostMachineIdMount }}
+            - name: host-machine-id
+              mountPath: /host/etc/machine-id
+              readOnly: true
+            {{- end }}
           readinessProbe:
             httpGet:
               path: /health
@@ -123,3 +128,9 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: qmserver-data
+        {{- if .Values.qmserver.billingHostMachineIdMount }}
+        - name: host-machine-id
+          hostPath:
+            path: /etc/machine-id
+            type: File
+        {{- end }}

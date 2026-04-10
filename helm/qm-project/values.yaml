@@ -87,6 +87,8 @@ qmserver:
     storage: 10Gi
   progressDeadlineSeconds: 900
   hostNetwork: true
+  # hostPath: node /etc/machine-id → /host/etc/machine-id (QMServer billing HWID uses host, not pod filesystem)
+  billingHostMachineIdMount: true
   config:
     appName: "QMServer Cloud"
     port: "8080"

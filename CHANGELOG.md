@@ -1,3 +1,10 @@
+# [1.9.46](https://github.com/mindevis/QMDeploy/compare/v1.9.45...v1.9.46) (2026-04-10)
+
+
+### Добавлено
+
+* **helm/qm-project:** для QMServer опциональный **`hostPath`** узла **`/etc/machine-id`** → **`/host/etc/machine-id`** в контейнере (**`qmserver.billingHostMachineIdMount`**, по умолчанию **true**), чтобы биллинговый HWID соответствовал **машине**, а не файловой системе пода. Отключите, только если **`hostPath`** запрещён политикой кластера.
+
 # [1.9.45](https://github.com/mindevis/QMDeploy/compare/v1.9.44...v1.9.45) (2026-04-10)
 
 
