@@ -1,3 +1,10 @@
+# [1.9.45](https://github.com/mindevis/QMDeploy/compare/v1.9.44...v1.9.45) (2026-04-10)
+
+
+### Удалено
+
+* **helm/qm-project:** параметр **`qmserver.billingCheckUrl`** и ключ **`QMSERVER_BILLING_CHECK_URL`** в ConfigMap/Deployment QMServer — URL и секрет проверки лицензии зашиты в **QMServer ≥1.5.71**; при необходимости по-прежнему можно задать **`QMSERVER_BILLING_CHECK_URL`** / **`QMSERVER_BILLING_CHECK_SECRET`** вручную в манифесте.
+
 # [1.9.44](https://github.com/mindevis/QMDeploy/compare/v1.9.43...v1.9.44) (2026-04-09)
 
 

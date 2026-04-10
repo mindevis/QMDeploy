@@ -10,6 +10,3 @@ data:
   APP_NAME: {{ .Values.qmserver.config.appName | quote }}
   PORT: {{ .Values.qmserver.config.port | quote }}
   GIN_MODE: {{ .Values.qmserver.config.ginMode | quote }}
-  {{- if .Values.qmserver.billingCheckUrl }}
-  QMSERVER_BILLING_CHECK_URL: {{ .Values.qmserver.billingCheckUrl | quote }}
-  {{- end }}
