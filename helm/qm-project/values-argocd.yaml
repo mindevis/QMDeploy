@@ -36,10 +36,6 @@ ingress:
 phpmyadmin:
   enabled: false
 
-# QMBilling (лицензия Pro): QMServer шлёт POST на этот URL.
-qmserver:
-  billingCheckUrl: "https://bill.qx-dev.ru/v1/check"
-
 # Postfix relay (остальные поля — из values.yaml).
 # SMTP relay: чарт создаёт smtp-relay-auth (noreply@… + пароль); см. smtpRelay.relayUserEmail в values.yaml.
 smtpRelay:

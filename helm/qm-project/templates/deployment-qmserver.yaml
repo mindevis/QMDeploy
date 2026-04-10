@@ -90,13 +90,6 @@ spec:
                 configMapKeyRef:
                   name: qm-qmserver-config
                   key: APP_NAME
-            {{- if .Values.qmserver.billingCheckUrl }}
-            - name: QMSERVER_BILLING_CHECK_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: qm-qmserver-config
-                  key: QMSERVER_BILLING_CHECK_URL
-            {{- end }}
             - name: DB_DSN
               valueFrom:
                 secretKeyRef:
